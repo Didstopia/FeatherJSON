@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Didstopia.FeatherJSON", "Di
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Didstopia.FeatherJSON.Tests", "Didstopia.FeatherJSON.Tests\Didstopia.FeatherJSON.Tests.csproj", "{4F775846-9DD2-4411-B88C-A1BDB430D7F9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Didstopia.FeatherJSON.Extensions", "Didstopia.FeatherJSON.Extensions\Didstopia.FeatherJSON.Extensions.csproj", "{78B2414F-C747-495B-933E-796916BFCB77}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{4F775846-9DD2-4411-B88C-A1BDB430D7F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F775846-9DD2-4411-B88C-A1BDB430D7F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F775846-9DD2-4411-B88C-A1BDB430D7F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78B2414F-C747-495B-933E-796916BFCB77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78B2414F-C747-495B-933E-796916BFCB77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78B2414F-C747-495B-933E-796916BFCB77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78B2414F-C747-495B-933E-796916BFCB77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		version = 0.0.1

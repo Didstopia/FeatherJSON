@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <PackageVersion>0.0.1</PackageVersion>
+    <Authors>Didstopia</Authors>
+    <DevelopmentDependency>true</DevelopmentDependency>
+    <NeutralLanguage>es-US</NeutralLanguage>
+    <PackageLicenseUrl>https://github.com/Didstopia/FeatherJSON/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Owners>Didstopia</Owners>
+    <PackageProjectUrl>https://github.com/Didstopia/FeatherJSON</PackageProjectUrl>
+    <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
+    <Summary>Extensions for Didstopia.FeatherJSON.</Summary>
+    <PackageTags>.net dotnet standard library json extension compression csharp c# xamarin watchos ios android uwp windows phone wp</PackageTags>
+    <Title>Didstopia.FeatherJSON.Extensions</Title>
+    <Description>Extensions for Didstopia.FeatherJSON.</Description>
+    <ReleaseVersion>0.0.1</ReleaseVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Didstopia.FeatherJSON\Didstopia.FeatherJSON.csproj" />
+  </ItemGroup>
+</Project>

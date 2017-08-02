@@ -33,14 +33,15 @@ env:
   #- bash <(curl -s https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.sh) --channel "2.0" --version "latest"
 
 # Setup for the build script
-before_script:
-  - export PATH=$HOME/.dotnet:$PATH
+#before_script:
+#  - export PATH=$HOME/.dotnet:$PATH
 
 # Build script
 script:
   - dotnet restore
   - dotnet build --configuration ${BUILD_CONFIG}
-  - dotnet test --configuration ${BUILD_CONFIG} Didstopia.FeatherJSON.Tests
+  #- dotnet test --configuration ${BUILD_CONFIG} Didstopia.FeatherJSON.Tests
+  - dotnet test --configuration ${BUILD_CONFIG}
   - dotnet pack --configuration ${BUILD_CONFIG}
 
 # Additional jobs that run after tests
@@ -56,26 +57,34 @@ jobs:
         skip_cleanup: true
         on:
           repo: Didstopia/FeatherJSON
+          branch: master
           tags: true
     - stage: GitHub Release
-      script: dotnet restore && dotnet build -c $BUILD_CONFIG && dotnet pack -c $BUILD_CONFIG
+      #script: 
+      script:
+        - dotnet restore
+        - dotnet build -c $BUILD_CONFIG
+        - dotnet pack -c $BUILD_CONFIG
       env: BUILD_CONFIG="Release" DOTNET_CLI_TELEMETRY_OPTOUT=1
       os: linux
       deploy:
         provider: releases
         api_key: $GITHUB_OAUTH_TOKEN
         file_glob: true
-        file: "Didstopia.FeatherJSON/bin/${BUILD_CONFIG}/*.nupkg"
+        file:
+          - "Didstopia.FeatherJSON/bin/${BUILD_CONFIG}/*.nupkg"
+          - "Didstopia.FeatherJSON.Extensions/bin/${BUILD_CONFIG}/*.nupkg"
         skip_cleanup: true
         on:
           repo: Didstopia/FeatherJSON
+          branch: master
           tags: true
 
 # Only build the master branch, as well as tags
-branches:
-  only:
-    - master
-    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
+#branches:
+#  only:
+#    - master
+#    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
 cache:
   directories:
