@@ -27,7 +27,7 @@ env:
 script:
   - dotnet restore
   - dotnet build --configuration ${BUILD_CONFIG}
-  - dotnet test --configuration ${BUILD_CONFIG} Didstopia.FeatherJSON.Tests
+  - dotnet test --configuration ${BUILD_CONFIG} Didstopia.FeatherJSON.Tests/Didstopia.FeatherJSON.Tests.csproj
   - dotnet pack --configuration ${BUILD_CONFIG}
 
 # Additional jobs that run after tests
