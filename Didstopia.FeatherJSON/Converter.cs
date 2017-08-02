@@ -1,4 +1,4 @@
-﻿// Extensions.cs
+﻿// Converter.cs
 //
 // Copyright (c) 2017 
 //
@@ -22,10 +22,20 @@
 
 using System;
 
-namespace Didstopia.FeatherJSON.Extensions
+namespace Didstopia.FeatherJSON
 {
-    public class Extensions
+    public static class Converter
     {
-        // TODO: Implement stuff like GZIP compressed serialization
+        public static string SerializeObject(object value)
+        {
+            var serializer = Serializer.DefaultSerializer();
+            return serializer.Serialize(value);
+        }
+
+		public static T DeserializeObject<T>(string value)
+		{
+			var serializer = Serializer.DefaultSerializer();
+			return serializer.Deserialize<T>(value);
+		}
     }
 }
