@@ -5,7 +5,7 @@ language: csharp
 mono: none
 
 # Install .NET Core (LTS)
-dotnet: 1.0.5
+dotnet: 1.0.4
 
 # Operating systems to test against
 os:
