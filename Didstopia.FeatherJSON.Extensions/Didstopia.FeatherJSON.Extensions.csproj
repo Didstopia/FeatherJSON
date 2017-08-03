@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.6</TargetFramework>
-    <PackageVersion>0.0.1</PackageVersion>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
     <Authors>Didstopia</Authors>
     <DevelopmentDependency>true</DevelopmentDependency>
     <NeutralLanguage>es-US</NeutralLanguage>
@@ -15,7 +16,6 @@
     <PackageTags>.net dotnet standard library json extension compression csharp c# xamarin watchos ios android uwp windows phone wp</PackageTags>
     <Title>Didstopia.FeatherJSON.Extensions</Title>
     <Description>Extensions for Didstopia.FeatherJSON.</Description>
-    <ReleaseVersion>0.0.1</ReleaseVersion>
   </PropertyGroup>
 
   <ItemGroup>

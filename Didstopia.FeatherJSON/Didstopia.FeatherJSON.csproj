@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.6</TargetFramework>
     <Description>FeatherJSON is a lightweight ("light as a feather") JSON library for C#.</Description>
-    <ReleaseVersion>0.0.1</ReleaseVersion>
-    <PackageVersion>0.0.1</PackageVersion>
+    <VersionPrefix>0.0.1</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
     <Authors>Didstopia</Authors>
     <DevelopmentDependency>true</DevelopmentDependency>
     <NeutralLanguage>en-US</NeutralLanguage>
