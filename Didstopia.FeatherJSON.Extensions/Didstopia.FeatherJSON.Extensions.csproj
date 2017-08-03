@@ -8,7 +8,7 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <NeutralLanguage>es-US</NeutralLanguage>
     <PackageLicenseUrl>https://github.com/Didstopia/FeatherJSON/blob/master/LICENSE.md</PackageLicenseUrl>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Owners>Didstopia</Owners>
     <PackageProjectUrl>https://github.com/Didstopia/FeatherJSON</PackageProjectUrl>
     <PackageReleaseNotes>Initial release.</PackageReleaseNotes>

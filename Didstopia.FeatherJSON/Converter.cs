@@ -26,15 +26,15 @@ namespace Didstopia.FeatherJSON
 {
     public static class Converter
     {
-        public static string SerializeObject(object value)
+        public static string SerializeObject(object value, SerializerOptions options = default(SerializerOptions))
         {
-            var serializer = Serializer.DefaultSerializer();
+            var serializer = Serializer.DefaultSerializer(options);
             return serializer.Serialize(value);
         }
 
-		public static T DeserializeObject<T>(string value)
+		public static T DeserializeObject<T>(string value, SerializerOptions options = default(SerializerOptions))
 		{
-			var serializer = Serializer.DefaultSerializer();
+			var serializer = Serializer.DefaultSerializer(options);
 			return serializer.Deserialize<T>(value);
 		}
     }
