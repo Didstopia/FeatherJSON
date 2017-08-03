@@ -8,7 +8,11 @@ NUGET_API_KEY=$2
 NUGET_SOURCE_URL=${3:-https://www.nuget.org/api/v2/package}
 
 if [[ "$BUILD_CONFIG" == "Release" ]]; then
-	VERSION_SUFFIX="snapshot-$(git rev-parse --short HEAD)"
+	if [ -z ${var+x} ]; then
+		VERSION_SUFFIX="SNAPSHOT-$(git rev-list HEAD | wc -l)-$(git rev-parse --short HEAD)"
+	else
+		VERSION_SUFFIX=""
+	fi
 
 	dotnet restore /p:VersionSuffix=$VERSION_SUFFIX
 	dotnet build --configuration ${BUILD_CONFIG} /p:VersionSuffix=$VERSION_SUFFIX
