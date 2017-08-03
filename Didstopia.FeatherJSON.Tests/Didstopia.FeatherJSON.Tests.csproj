@@ -18,5 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Didstopia.FeatherJSON\Didstopia.FeatherJSON.csproj" />
+    <ProjectReference Include="..\Didstopia.FeatherJSON.Extensions\Didstopia.FeatherJSON.Extensions.csproj" />
   </ItemGroup>
 </Project>

@@ -4,7 +4,7 @@ language: csharp
 # Mono is not required for this project
 mono: none
 
-# Install .NET Core
+# Install .NET Core (LTS)
 dotnet: 1.0.4
 
 # Operating systems to test against
@@ -15,9 +15,6 @@ os:
 # Disable sudo to enable running inside a container
 sudo: false
 
-# Default linux distro (Ubuntu 14.04)
-dist: trusty
-
 # Default Xcode/macOS version (macOS 10.12)
 osx_image: xcode8.3
 
@@ -26,26 +23,30 @@ env:
 - BUILD_CONFIG="Debug" DOTNET_CLI_TELEMETRY_OPTOUT=1
 - BUILD_CONFIG="Release" DOTNET_CLI_TELEMETRY_OPTOUT=1
 
-# Install dependencies
-install:
-  - bash <(curl -s https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.sh) --channel "LTS" --version "latest"
-  - bash <(curl -s https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.sh) --channel "2.0" --version "2.0.0-preview3-006540"
-  - bash <(curl -s https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.sh) --channel "2.0" --version "latest"
-
-# Setup for the build script
-before_script:
-  - export PATH=$HOME/.dotnet:$PATH
-
 # Build script
 script:
   - dotnet restore
   - dotnet build --configuration ${BUILD_CONFIG}
-  - dotnet test --configuration ${BUILD_CONFIG} Didstopia.FeatherJSON.Tests
-  - dotnet pack --configuration ${BUILD_CONFIG}
+  - dotnet test --configuration ${BUILD_CONFIG} Didstopia.FeatherJSON.Tests/Didstopia.FeatherJSON.Tests.csproj
+  - dotnet pack --configuration ${BUILD_CONFIG} --no-build
 
 # Additional jobs that run after tests
 jobs:
   include:
+
+    - stage: myget.org
+      script: skip
+      env: BUILD_CONFIG="Release" DOTNET_CLI_TELEMETRY_OPTOUT=1
+      os: linux
+      deploy:
+        provider: script
+        script: .scripts/deploy.sh $BUILD_CONFIG $MYGET_API_KEY https://www.myget.org/F/didstopia-prerelease/api/v2
+        skip_cleanup: true
+        on:
+          repo: Didstopia/FeatherJSON
+          branch: master
+          tags: false
+    
     - stage: nuget.org
       script: skip
       env: BUILD_CONFIG="Release" DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -56,26 +57,28 @@ jobs:
         skip_cleanup: true
         on:
           repo: Didstopia/FeatherJSON
+          branch: master
           tags: true
+
     - stage: GitHub Release
-      script: dotnet restore && dotnet build -c $BUILD_CONFIG && dotnet pack -c $BUILD_CONFIG
+      script:
+        - dotnet restore
+        - dotnet build -c $BUILD_CONFIG
+        - dotnet pack -c $BUILD_CONFIG --no-build
       env: BUILD_CONFIG="Release" DOTNET_CLI_TELEMETRY_OPTOUT=1
       os: linux
       deploy:
         provider: releases
         api_key: $GITHUB_OAUTH_TOKEN
         file_glob: true
-        file: "Didstopia.FeatherJSON/bin/${BUILD_CONFIG}/*.nupkg"
+        file:
+          - "Didstopia.FeatherJSON/bin/${BUILD_CONFIG}/*.nupkg"
+          - "Didstopia.FeatherJSON.Extensions/bin/${BUILD_CONFIG}/*.nupkg"
         skip_cleanup: true
         on:
           repo: Didstopia/FeatherJSON
+          branch: master
           tags: true
-
-# Only build the master branch, as well as tags
-branches:
-  only:
-    - master
-    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
 cache:
   directories:

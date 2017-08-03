@@ -24,7 +24,9 @@ using System;
 using Xunit;
 
 using Didstopia.FeatherJSON;
+using Didstopia.FeatherJSON.Extensions;
 using System.Runtime.Serialization;
+using System.IO;
 
 namespace Didstopia.FeatherJSON.Tests
 {
@@ -79,7 +81,7 @@ namespace Didstopia.FeatherJSON.Tests
         // EDIT: JavaScriptSerializer is not available even in .NET Core 2.0, so it's not an option!
 
         [Fact]
-        public void TestConversion()
+        public void TestSerializer()
         {
             var dummyObject = new DummyObject
             {
@@ -96,14 +98,14 @@ namespace Didstopia.FeatherJSON.Tests
             dummyObject.UpdatePrivateVariables();
             Assert.NotNull(dummyObject);
 
-            var jsonString = Convert.Serialize(dummyObject);
+            var jsonString = Converter.SerializeObject(dummyObject);
             Assert.NotNull(dummyObject);
             Assert.False(jsonString.Length.Equals(0));
 
             dummyObject = null;
             Assert.Null(dummyObject);
 
-            dummyObject = Convert.Deserialize<DummyObject>(jsonString);
+            dummyObject = Converter.DeserializeObject<DummyObject>(jsonString);
             Assert.NotNull(dummyObject);
 
             Assert.NotNull(dummyObject.StringProperty);
@@ -116,5 +118,16 @@ namespace Didstopia.FeatherJSON.Tests
             Assert.NotNull(dummyObject.ByteArrayField);
             Assert.False(dummyObject.BoolField);
         }
+
+        [Fact]
+        public void TestExtensions()
+        {
+            // TODO: Implement
+
+            /*ConverterExtensions.SerializeToFileCompressed("", "");
+            ConverterExtensions.SerializeCompressed("", new MemoryStream());
+            var fileValue = ConverterExtensions.DeserializeFromFileCompressed<string>("");
+            var value = ConverterExtensions.DeserializeCompressed<string>(new MemoryStream());*/
+	    }
     }
 }
