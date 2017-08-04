@@ -22,17 +22,29 @@
 
 using System;
 using System.IO;
-using System.Runtime.Serialization.Json;
+//using System.Runtime.Serialization.Json;
 using System.Text;
+
+// TODO: Migrate from System.Runtime.Serialization to entirely custom serialization
 
 namespace Didstopia.FeatherJSON
 {
-	public struct SerializerOptions
-	{
-		public bool IgnoreNullOrUndefined { get; set; }
-		public bool PrettyPrintEnabled { get; set; }
-	}
+    #region Attributes
+    public class SerializerIgnoreAttribute : Attribute
+    {
+        // TODO: Implement and use in JSONParser
+    }
+    #endregion
 
+    #region Configuration
+    public struct SerializerOptions
+    {
+        public bool IgnoreNullOrUndefined { get; set; }
+        public bool PrettyPrintEnabled { get; set; }
+    }
+    #endregion
+
+    #region Serializer
     public sealed class Serializer
     {
         #region Properties and fields
@@ -61,7 +73,7 @@ namespace Didstopia.FeatherJSON
 
             // Create a new memory stream
             string jsonString = "{}";
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(value.GetType());
+            JSONSerializer serializer = new JSONSerializer(value.GetType());
             using (var memoryStream = new MemoryStream())
             {
                 // Write the serialized data to the memory stream
@@ -82,48 +94,48 @@ namespace Didstopia.FeatherJSON
             return jsonString;
         }
 
-		public string Serialize(StreamWriter streamWriter, object value)
-		{
+        public string Serialize(StreamWriter streamWriter, object value)
+        {
             // TODO: Handle SerializerOptions and apply to
             //       DataContractJsonSerializerSettings where necessary
 
             // TODO: Implement streamWriter support:
             //       Serialize value to stream, not actually returning any data
 
-			// Create a new memory stream
-			string jsonString = "{}";
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(value.GetType());
-			using (var memoryStream = new MemoryStream())
-			{
+            // Create a new memory stream
+            string jsonString = "{}";
+            JSONSerializer serializer = new JSONSerializer(value.GetType());
+            using (var memoryStream = new MemoryStream())
+            {
                 // TODO: This might be entirely wrong..
-				// Write the serialized data to the memory stream
-				serializer.WriteObject(streamWriter.BaseStream, value);
+                // Write the serialized data to the memory stream
+                serializer.WriteObject(streamWriter.BaseStream, value);
 
-				// Rewind the memory stream position
-				memoryStream.Position = 0;
+                // Rewind the memory stream position
+                memoryStream.Position = 0;
 
-				// Create a new stream reader from the memory stream
-				using (var streamReader = new StreamReader(memoryStream))
-				{
-					// Read and store the entire stream
-					jsonString = streamReader.ReadToEnd();
-				}
-			}
+                // Create a new stream reader from the memory stream
+                using (var streamReader = new StreamReader(memoryStream))
+                {
+                    // Read and store the entire stream
+                    jsonString = streamReader.ReadToEnd();
+                }
+            }
 
-			// Return the JSON string
-			return jsonString;
-		}
+            // Return the JSON string
+            return jsonString;
+        }
         #endregion
 
         #region Deserialization
         public T Deserialize<T>(string jsonString)
         {
-			// TODO: Handle SerializerOptions and apply to
-			//       DataContractJsonSerializerSettings where necessary
+            // TODO: Handle SerializerOptions and apply to
+            //       DataContractJsonSerializerSettings where necessary
 
-			// Read the JSON string to a new memory stream
-			T deserializedObject = default(T);
-            DataContractJsonSerializer deserializer = new DataContractJsonSerializer(typeof(T));
+            // Read the JSON string to a new memory stream
+            T deserializedObject = default(T);
+            JSONSerializer deserializer = new JSONSerializer(typeof(T));
             using (var memoryStream = new MemoryStream(Encoding.Unicode.GetBytes(jsonString)))
             {
                 // Deserialize the contents of the memory stream to an object
@@ -134,8 +146,8 @@ namespace Didstopia.FeatherJSON
             return deserializedObject;
         }
 
-		public T Deserialize<T>(StreamReader streamReader)
-		{
+        public T Deserialize<T>(StreamReader streamReader)
+        {
             // TODO: Handle SerializerOptions and apply to
             //       DataContractJsonSerializerSettings where necessary
 
@@ -145,17 +157,18 @@ namespace Didstopia.FeatherJSON
             // TODO: This might be entirely wrong..
             // Read the JSON string to a new memory stream
             var jsonString = streamReader.ReadToEnd();
-			T deserializedObject = default(T);
-			DataContractJsonSerializer deserializer = new DataContractJsonSerializer(typeof(T));
+            T deserializedObject = default(T);
+            JSONSerializer deserializer = new JSONSerializer(typeof(T));
             using (var memoryStream = new MemoryStream(Encoding.Unicode.GetBytes(jsonString)))
-			{
-				// Deserialize the contents of the memory stream to an object
-				deserializedObject = (T)deserializer.ReadObject(memoryStream);
-			}
+            {
+                // Deserialize the contents of the memory stream to an object
+                deserializedObject = (T)deserializer.ReadObject(memoryStream);
+            }
 
-			// Return the deserialized object
-			return deserializedObject;
-		}
+            // Return the deserialized object
+            return deserializedObject;
+        }
         #endregion
     }
+    #endregion
 }

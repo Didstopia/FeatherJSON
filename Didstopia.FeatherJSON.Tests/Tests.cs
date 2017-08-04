@@ -25,7 +25,6 @@ using Xunit;
 
 using Didstopia.FeatherJSON;
 using Didstopia.FeatherJSON.Extensions;
-using System.Runtime.Serialization;
 using System.IO;
 
 namespace Didstopia.FeatherJSON.Tests
@@ -44,7 +43,7 @@ namespace Didstopia.FeatherJSON.Tests
         public string StringField;
         public DateTimeOffset? DateTimeOffsetField;
         public byte[] ByteArrayField;
-        [IgnoreDataMember] public bool BoolField;
+        [SerializerIgnore] public bool BoolField;
 
         // NOTE: These are all NOT included in the serialization by default
         private string PrivateStringProperty { get; set; }
@@ -99,6 +98,7 @@ namespace Didstopia.FeatherJSON.Tests
             Assert.NotNull(dummyObject);
 
             var jsonString = Converter.SerializeObject(dummyObject);
+            System.Diagnostics.Debug.WriteLine(jsonString);
             Assert.NotNull(dummyObject);
             Assert.False(jsonString.Length.Equals(0));
 
