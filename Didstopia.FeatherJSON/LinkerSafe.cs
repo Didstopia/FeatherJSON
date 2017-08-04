@@ -23,5 +23,6 @@
 using System;
 using Didstopia.FeatherJSON;
 
+// TODO: Not sure if this actually works/does anything?
 [assembly:LinkerSafe]
 namespace Didstopia.FeatherJSON { class LinkerSafeAttribute : Attribute { } }

@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.6</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <NETStandardImplicitPackageVersion>2.0.0-preview2-25401-01</NETStandardImplicitPackageVersion>
     <VersionPrefix>0.0.1</VersionPrefix>
     <VersionSuffix></VersionSuffix>
     <Authors>Didstopia</Authors>
@@ -13,11 +14,15 @@
     <PackageProjectUrl>https://github.com/Didstopia/FeatherJSON</PackageProjectUrl>
     <PackageReleaseNotes>Initial release.</PackageReleaseNotes>
     <Summary>Extensions for Didstopia.FeatherJSON.</Summary>
-    <PackageTags>.net dotnet standard library json extension compression csharp c# xamarin watchos ios android uwp windows phone wp</PackageTags>
+    <PackageTags>.net dotnet standard 2.0 library json extension compression csharp c# xamarin watchos ios android uwp windows phone wp</PackageTags>
     <Title>Didstopia.FeatherJSON.Extensions</Title>
     <Description>Extensions for Didstopia.FeatherJSON.</Description>
+    <ReleaseVersion>0.0.1</ReleaseVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType></DebugType>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Didstopia.FeatherJSON\Didstopia.FeatherJSON.csproj" />
   </ItemGroup>
