@@ -30,6 +30,9 @@ namespace Didstopia.FeatherJSON
     {
         public Type Type { get; }
 
+        public static readonly Encoding DefaultEncoding = Encoding.UTF8;
+        public static readonly int DefaultBufferSize = 1024;
+
         public JSONSerializer(Type type)
         {
             // Store the type of object this serializer is valid for
@@ -53,7 +56,7 @@ namespace Didstopia.FeatherJSON
             try
             {
                 // Write a string representation of the JSONObject to the stream
-                using (var streamWriter = new StreamWriter(stream, Encoding.Unicode, 1024, true))
+                using (var streamWriter = new StreamWriter(stream, DefaultEncoding, DefaultBufferSize, true))
                 {
                     streamWriter.Write(new JSONObject(Type, value));
                 }
@@ -75,7 +78,7 @@ namespace Didstopia.FeatherJSON
             try
             {
                 // Read the stream and create a JSONObject from it
-                using (var streamReader = new StreamReader(stream, Encoding.Unicode, false, 1024, true))
+                using (var streamReader = new StreamReader(stream, DefaultEncoding, false, DefaultBufferSize, true))
                 {
                     return JSONObject.FromString(Type, streamReader.ReadToEnd()).Object;
                 }

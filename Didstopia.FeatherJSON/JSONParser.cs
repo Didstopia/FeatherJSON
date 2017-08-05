@@ -33,9 +33,20 @@ namespace Didstopia.FeatherJSON
 
             try
             {
-                // Check that we're dealing with an actual object
+                /*
+                 *   JSON supports the following data types:
+                 * 
+                 *   a string
+                 *   a number
+                 *   an object (JSON object)
+                 *   an array
+                 *   a boolean
+                 *   null
+                 */
+
+                // Handle null objects
                 if (value == null)
-                    return string.Empty;
+                    return null;
 
                 // Handle strings
                 if (Type.GetTypeCode(value.GetType()).Equals(TypeCode.String))
@@ -53,13 +64,19 @@ namespace Didstopia.FeatherJSON
                 if (value.GetType().FullName.StartsWith("System.Byte[]", StringComparison.Ordinal))
                     return Convert.ToBase64String(value as byte[]);
 
+                // If date time offset, return a standardized time string
+                if (value.GetType().FullName.StartsWith("System.DateTimeOffset", StringComparison.Ordinal))
+                    return ((DateTimeOffset)value).ToString("o");
+
                 // If date, return a standardized time string
                 if (Type.GetTypeCode(value.GetType()).Equals(TypeCode.DateTime))
                     return ((DateTime)value).ToString("o");
 
-                // If date time offset, return a standardized time string
-                if (value.GetType().Name.StartsWith("System.DateTimeOffset", StringComparison.Ordinal))
-                    return ((DateTimeOffset)value).ToString("o");
+                // If char, return it as a string
+                if (Type.GetTypeCode(value.GetType()).Equals(TypeCode.Char))
+                    return value.ToString();
+
+                // TODO: How do we support array types? Arrays can hold any supported JSON data type
 
                 // TODO: If Dictionary or List, handle accordingly (not sure how though, it'll be tricky)
 
@@ -72,7 +89,6 @@ namespace Didstopia.FeatherJSON
                 // TODO: Should we just return null for 
 
                 return value.ToString();
-                //return string.Empty;
             }
             catch (Exception e)
             {

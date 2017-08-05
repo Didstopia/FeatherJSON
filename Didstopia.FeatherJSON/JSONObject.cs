@@ -41,8 +41,21 @@ namespace Didstopia.FeatherJSON
             Type = type;
             Object = o ?? throw new Exception("Can't create JSONObject from a null object");
 
+            // FIXME: Specifically add support for lists, dictionaries and arrays
+
+            // TODO: Test with a List<string> first, as we need to figure out how this would work,
+            //       but I'm guessing we'd just create an array of strings in JSON format?
+            //       How would we get the name of the array/List though?
+
+            // TODO: Creating a JSONObject from anything other than a custom object (eg. a class)
+            //       might not be worth it, think about this long and hard and test how JSON .NET does it?
+
             // Create a new dictionary in which we'll store the object properties
             Properties = new Dictionary<string, object>();
+
+            // Don't allow system objects (eg. string or int) to be used
+            if (Type.FullName.StartsWith("System.", StringComparison.Ordinal))
+                throw new Exception($"Can't create JSONObject from a system object of type {Type}");
 
             // Parse the object's public properties and fields
             var properties = Type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -127,6 +140,7 @@ namespace Didstopia.FeatherJSON
             return ConvertToString();
         }
 
+        // FIXME: Shouldn't JSONParser be in charge of the JSON formatting? I think it should..
         private string ConvertToString(int indentation = 0, SerializerOptions options = default(SerializerOptions))
         {
             // TODO: Add nested property support

@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Didstopia.FeatherJSON", "Didstopia.FeatherJSON\Didstopia.FeatherJSON.csproj", "{E3ED1F2C-3B79-4DB0-9B79-E9A0E3C5C7D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Didstopia.FeatherJSON.Tests", "Didstopia.FeatherJSON.Tests\Didstopia.FeatherJSON.Tests.csproj", "{4F775846-9DD2-4411-B88C-A1BDB430D7F9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{4F775846-9DD2-4411-B88C-A1BDB430D7F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Didstopia.FeatherJSON.Extensions", "Didstopia.FeatherJSON.Extensions\Didstopia.FeatherJSON.Extensions.csproj", "{78B2414F-C747-495B-933E-796916BFCB77}"
 EndProject
