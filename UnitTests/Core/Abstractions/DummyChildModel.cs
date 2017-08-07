@@ -1,4 +1,4 @@
-﻿// SerializerTests.cs
+﻿// DummyChildModel.cs
 //
 // Copyright (c) 2017 Didstopia
 //
@@ -22,44 +22,35 @@
 
 using System;
 
-using Core.Abstractions;
-using Xunit;
-using Utilities;
-
-using Didstopia.FeatherJSON;
-
-namespace Core
+namespace Core.Abstractions
 {
-    public class SerializerTests : Test
+    public class DummyChildModel : IDisposable
     {
-        public override void SetUp()
+        public string StringProperty { get; set; }
+        string PrivateStringProperty { get; set; }
+
+        public string StringField;
+        string PrivateStringField;
+
+        public void Dispose()
         {
-            base.SetUp();
-            Logger.WriteLine("Set Up");
+            StringProperty = default(string);
+            PrivateStringProperty = default(string);
+
+            StringField = default(string);
+            PrivateStringField = default(string);
         }
 
-        public override void TearDown()
+        public static DummyChildModel Create()
         {
-            base.TearDown();
-            Logger.WriteLine("Tear Down");
-        }
+            return new DummyChildModel
+            {
+                StringProperty = Guid.NewGuid().ToString(),
+                StringField = Guid.NewGuid().ToString(),
 
-        // FIXME: https://github.com/xunit/xamarinstudio.xunit/issues/70
-        //[Fact]
-        public void Should_Serializer_Serialize()
-        {
-            Logger.WriteLine("Should_Serializer_Serialize()");
-
-
-        }
-
-        // FIXME: https://github.com/xunit/xamarinstudio.xunit/issues/70
-        //[Fact]
-        public void Should_Serializer_Deserialize()
-        {
-            Logger.WriteLine("Should_Converter_Deserialize()");
-
-
+                PrivateStringProperty = Guid.NewGuid().ToString(),
+                PrivateStringField = Guid.NewGuid().ToString(),
+            };
         }
     }
 }

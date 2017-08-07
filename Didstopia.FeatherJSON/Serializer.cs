@@ -68,9 +68,6 @@ namespace Didstopia.FeatherJSON
         #region Serialization
         public string Serialize(object value)
         {
-            // TODO: Handle SerializerOptions and apply to
-            //       DataContractJsonSerializerSettings where necessary
-
             // Create a new memory stream
             string jsonString = "{}";
             JSONSerializer serializer = new JSONSerializer(value.GetType());
@@ -94,49 +91,26 @@ namespace Didstopia.FeatherJSON
             return jsonString;
         }
 
-        public string Serialize(StreamWriter streamWriter, object value)
+        // TODO: Does this actually work? Or is this wrong?
+        public void Serialize(StreamWriter streamWriter, object value)
         {
-            // TODO: Handle SerializerOptions and apply to
-            //       DataContractJsonSerializerSettings where necessary
-
-            // TODO: Implement streamWriter support:
-            //       Serialize value to stream, not actually returning any data
-
             // Create a new memory stream
-            string jsonString = "{}";
             JSONSerializer serializer = new JSONSerializer(value.GetType());
             using (var memoryStream = new MemoryStream())
             {
-                // TODO: This might be entirely wrong..
                 // Write the serialized data to the memory stream
                 serializer.WriteObject(streamWriter.BaseStream, value);
-
-                // Rewind the memory stream position
-                memoryStream.Position = 0;
-
-                // Create a new stream reader from the memory stream
-                using (var streamReader = new StreamReader(memoryStream))
-                {
-                    // Read and store the entire stream
-                    jsonString = streamReader.ReadToEnd();
-                }
             }
-
-            // Return the JSON string
-            return jsonString;
         }
         #endregion
 
         #region Deserialization
         public T Deserialize<T>(string jsonString)
         {
-            // TODO: Handle SerializerOptions and apply to
-            //       DataContractJsonSerializerSettings where necessary
-
             // Read the JSON string to a new memory stream
             T deserializedObject = default(T);
             JSONSerializer deserializer = new JSONSerializer(typeof(T));
-            using (var memoryStream = new MemoryStream(Encoding.Unicode.GetBytes(jsonString)))
+            using (var memoryStream = new MemoryStream(JSONSerializer.DefaultEncoding.GetBytes(jsonString)))
             {
                 // Deserialize the contents of the memory stream to an object
                 deserializedObject = (T)deserializer.ReadObject(memoryStream);
@@ -148,18 +122,12 @@ namespace Didstopia.FeatherJSON
 
         public T Deserialize<T>(StreamReader streamReader)
         {
-            // TODO: Handle SerializerOptions and apply to
-            //       DataContractJsonSerializerSettings where necessary
-
-            // TODO: Implement streamReader support:
-            //       Deserialize value from stream
-
             // TODO: This might be entirely wrong..
             // Read the JSON string to a new memory stream
             var jsonString = streamReader.ReadToEnd();
             T deserializedObject = default(T);
             JSONSerializer deserializer = new JSONSerializer(typeof(T));
-            using (var memoryStream = new MemoryStream(Encoding.Unicode.GetBytes(jsonString)))
+            using (var memoryStream = new MemoryStream(JSONSerializer.DefaultEncoding.GetBytes(jsonString)))
             {
                 // Deserialize the contents of the memory stream to an object
                 deserializedObject = (T)deserializer.ReadObject(memoryStream);

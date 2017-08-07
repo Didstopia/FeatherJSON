@@ -24,4 +24,7 @@
     <DebugType></DebugType>
     <Optimize>true</Optimize>
   </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="Parser\" />
+  </ItemGroup>
 </Project>

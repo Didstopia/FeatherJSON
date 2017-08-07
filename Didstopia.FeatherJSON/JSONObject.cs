@@ -21,9 +21,12 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
+using Didstopia.FeatherJSON.Parser;
 
 namespace Didstopia.FeatherJSON
 {
@@ -35,104 +38,157 @@ namespace Didstopia.FeatherJSON
 
         public JSONObject(Type type, object o)
         {
-            // TODO: Add nested property support
-
             // Store the object and it's type
             Type = type;
             Object = o ?? throw new Exception("Can't create JSONObject from a null object");
 
-            // FIXME: Specifically add support for lists, dictionaries and arrays
-
-            // TODO: Test with a List<string> first, as we need to figure out how this would work,
-            //       but I'm guessing we'd just create an array of strings in JSON format?
-            //       How would we get the name of the array/List though?
-
-            // TODO: Creating a JSONObject from anything other than a custom object (eg. a class)
-            //       might not be worth it, think about this long and hard and test how JSON .NET does it?
+            // If the object is a value type, we can ignore scanning it's properties
+            if (Object.GetType().IsValueType)
+                return;
 
             // Create a new dictionary in which we'll store the object properties
-            Properties = new Dictionary<string, object>();
+            Properties = GetProperties(Type, Object);
+        }
 
-            // Don't allow system objects (eg. string or int) to be used
-            if (Type.FullName.StartsWith("System.", StringComparison.Ordinal))
-                throw new Exception($"Can't create JSONObject from a system object of type {Type}");
-
-            // Parse the object's public properties and fields
-            var properties = Type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var property in properties)
+        // FIXME: Rewrite/refactor across multiple methods, so we can more easily detect the type,
+        //        handle enumerable collections and recursively handle custom objects/classes
+        internal static Dictionary<string, object> GetProperties(Type type, object o)
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>();
+            var typeProperties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var typeProperty in typeProperties)
             {
-                // Add the property name and value to our property dictionary
-                Properties.Add(property.Name, property.GetValue(Object));
-            }
+                var propertyValue = typeProperty.GetValue(o);
 
-            // Check that we've successfully parsed properties or fields
-            if (Properties.Count == 0)
-                throw new Exception("Can't create JSONObject from an object with no visible properties or fields");
+                // TODO: If it's a list, it doesn't have a key/name, so it needs to be an array!
+
+                // Handle value types ands primitives
+                if (propertyValue.GetType().IsValueType || propertyValue.GetType().IsPrimitive)
+                {
+                    result.Add(typeProperty.Name, propertyValue);
+                }
+
+                // Handle decimals
+                else if (propertyValue is Decimal)
+                {
+                    result.Add(typeProperty.Name, propertyValue);
+                }
+
+                // Handle strings
+                else if (propertyValue is string)
+                {
+                    result.Add(typeProperty.Name, propertyValue);
+                }
+
+                // TODO: Handle arrays of all types, not just bytes (including custom classes)
+                // Handle primitive arrays
+                else if (propertyValue is byte[])
+                {
+                    result.Add(typeProperty.Name, propertyValue);
+                }
+
+                // Handle dictionaries
+                else if (propertyValue as IDictionary != null)
+                {
+                    var dictionary = propertyValue as IDictionary;
+                    Dictionary<string, object> dictionaryResult = new Dictionary<string, object>();
+                    foreach (KeyValuePair<string, object> item in dictionary)
+                    {
+                        if (item.Value.GetType().IsValueType)
+                        {
+                            dictionaryResult.Add(item.Key, item.Value);
+                        }
+                        else
+                        {
+                            var itemProperties = GetProperties(item.Value.GetType(), item.Value);
+                            dictionaryResult.Add(item.Key, itemProperties);
+                        }
+                    }
+                    result.Add(typeProperty.Name, dictionaryResult);
+                }
+
+                // Handle lists
+                else if (propertyValue as IList != null)
+                {
+                    var list = propertyValue as IList;
+                    List<object> listResult = new List<object>();
+                    foreach (var element in list)
+                    {
+                        if (element.GetType().IsValueType)
+                        {
+                            listResult.Add(element);
+                        }
+                        else
+                        {
+                            var elementProperties = GetProperties(element.GetType(), element);
+                            listResult.Add(elementProperties);
+                        }
+                    }
+                    result.Add(typeProperty.Name, listResult);
+                }
+
+                else
+                {
+                    Console.WriteLine("Unhandled type: " + type);
+
+                    result.Add(typeProperty.Name, GetProperties(propertyValue.GetType(), propertyValue));
+                }
+            }
+            return result;
+        }
+
+        internal static object SetProperties(Type type, Dictionary<string, object> properties)
+        {
+            // TODO: Implement recursively
+            var result = Activator.CreateInstance(type);
+            var typeProperties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var typeProperty in typeProperties)
+            {
+                var propertyValue = properties[typeProperty.Name];
+
+                // TODO: Handle stuff like we do in GetProperties
+
+                // TODO: None of these support nullable properties (ie. Nullable<DateTimeOffset> or DateTimeOffset?)
+
+                // TODO: How do we do this for child objects?
+                //typeProperty.SetValue(result, SetProperties(typeProperty.GetType(), null));
+
+                // HACK: Just trying to see if this works out of the box like this
+                if (typeProperty.PropertyType.Equals(typeof(DateTime)) || typeProperty.PropertyType.Equals(typeof(DateTime?)))
+                    typeProperty.SetValue(result, DateTime.ParseExact(propertyValue.ToString(), "o", CultureInfo.InvariantCulture));
+                else if (typeProperty.PropertyType.Equals(typeof(DateTimeOffset)) || typeProperty.PropertyType.Equals(typeof(DateTimeOffset?)))
+                    typeProperty.SetValue(result, DateTimeOffset.ParseExact(propertyValue.ToString(), "o", CultureInfo.InvariantCulture));
+                else if (typeProperty.PropertyType.Equals(typeof(byte[])))
+                    typeProperty.SetValue(result, Convert.FromBase64String(propertyValue.ToString()));
+                else if (typeProperty.PropertyType.IsValueType)
+                    typeProperty.SetValue(result, propertyValue);
+                else if (typeProperty.PropertyType.IsClass && propertyValue is Dictionary<string, object>)
+                    typeProperty.SetValue(result, SetProperties(typeProperty.PropertyType, (Dictionary<string, object>)propertyValue));
+                else
+                    typeProperty.SetValue(result, propertyValue);
+
+                // FIXME: Object of type 'System.Collections.Generic.Dictionary`2[System.String,System.Object]'
+                //        cannot be converted to type 'Core.Abstractions.DummyChildModel'
+            }
+            return result;
         }
 
         public static JSONObject FromString(Type type, string value)
         {
-            // TODO: Transform value (JSON string) back to a JSONObject,
-            //       meaning we need to construct the dictionary by hand,
-            //       and then use reflection to build the object,
-            //       assign it's properties and finally return it
+            // Decode the JSON string to an object
+            var decodedObject = JSONParser.JsonDecode(value);
 
-            /*
-             * {
-             *   "RootKey": "RootValue",
-             *   "RootChildren":
-             *   {
-             *     "ChildKey": "ChildValue"
-             *   }
-             * }
-             * 
-             * 
-            */
-
-            // TODO: Remove newlines from between curly braces and key value pairs (tricky, but doable?)
-
-            // Get the root object
-            var rootObject = value.Substring(value.IndexOf('{') + 1, value.LastIndexOf('}') - 1);
-            if (string.IsNullOrWhiteSpace(rootObject))
-                throw new Exception($"JSONObject failed to parse root JSON object from string: {value}");
-
-            // TODO: Next we need to get the top level (root) keys and values
-
-            // TODO: If top level (root) value is an object (starts with a curly brace),
-            //       then we need to process that as it's own "root" object?
-
-            // FIXME: Properly parse key value pairs, but also taking into account
-            //        child values, in which case we can't just remove curly braces completely
-
-            // TODO: These aren't good solutions, as the key or value might
-            //       contain some of these special characters themselves
-
-            // Strip curly braces from the value
-            value = value.Replace("{", "").Replace("}", "");
-
-            // Strip escaped double quotes from the value
-            value = value.Replace("\"", "");
-
-            // Get each key value pair from the JSON string
-            var values = value.Split(',');
-
-            // TODO: Convert values to a dictionary
-            var valuesDictionary = new Dictionary<string, object>();
-            foreach (var v in values)
-            {
-                var valueArray = v.Split(':');
-                valuesDictionary.Add(valueArray[0], valueArray[1]);
-            }
+            if (decodedObject == null)
+                return new JSONObject(type, null);
 
             // Create an object of the necessary type and assign the values to it
-            var obj = Activator.CreateInstance(type);
-            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var property in properties)
+            if (decodedObject as Dictionary<string, object> != null)
             {
-                property.SetValue(obj, valuesDictionary[property.Name]);
+                var decodedProperties = (Dictionary<string, object>)decodedObject;
+                return new JSONObject(type, SetProperties(type, decodedProperties));
             }
 
-            return new JSONObject(type, obj);
+            return new JSONObject(type, decodedObject);
         }
 
         public override string ToString()
@@ -140,101 +196,12 @@ namespace Didstopia.FeatherJSON
             return ConvertToString();
         }
 
-        // FIXME: Shouldn't JSONParser be in charge of the JSON formatting? I think it should..
-        private string ConvertToString(int indentation = 0, SerializerOptions options = default(SerializerOptions))
+        private string ConvertToString(SerializerOptions options = default(SerializerOptions))
         {
-            // TODO: Add nested property support
-
-            // TODO: Add pretty printing early on, using AppendLine,
-            //       but also use smart indentation, counting the indentation as we go
-
-            try
-            {
-                // Create a new string builder which will be used to build
-                // the JSON representation of the JSONObject
-                var stringBuilder = new StringBuilder();
-
-                // Keep track of indentation (used for pretty printing)
-                var originalIndentation = options.PrettyPrintEnabled ? indentation : 0;
-                if (options.PrettyPrintEnabled)
-                    indentation += 2;
-
-                // Start with an open curly brace
-                if (options.PrettyPrintEnabled)
-                    stringBuilder.AppendLine(Indent(originalIndentation) + "{");
-                else
-                    stringBuilder.Append("{");
-
-                // Construct the JSON key value pairs
-                var i = 0;
-                foreach (var property in Properties)
-                {
-                    i++;
-
-                    /*
-                        Currently produces this:
-                     
-                        {
-                          "StringProperty": "5aab4889-d533-4ebd-bb9b-b97b328cb0dc",
-                          "DateTimeOffsetProperty": "08/04/2017 16:07:21 +00:00",
-                          "ByteArrayProperty": "CaoKdzNYpUuGRk+6tgZ2MA==",
-                          "BoolProperty": true
-                        }
-
-                        Validate with JSONLint:
-                        https://jsonlint.com
-                     */
-
-                    // Skip null values if the option is set
-                    var parsedValue = JSONParser.ParseObjectValue(property.Value);
-                    if (parsedValue == null && options.IgnoreNullOrUndefined)
-                        continue;
-
-                    // TODO: If the parsed value is a List or a Dictionary, then we need to
-                    // transform those into JSONObject's of their own, finally
-                    // calling ConvertToString(indentation + 2) on them, so it all
-                    // ends up nice and recursive
-
-                    // Add double quotes to keys
-                    var parsedKey = @"""" + property.Key + @"""";
-
-                    // Parse the value and add double quotes if necessary
-                    if (Type.GetTypeCode(parsedValue.GetType()).Equals(TypeCode.String) && (!parsedValue.ToString().Equals("true") && !parsedValue.ToString().Equals("false")))
-                        parsedValue = @"""" + parsedValue + @"""";
-
-                    if (i < Properties.Count)
-                        if (options.PrettyPrintEnabled)
-                            stringBuilder.AppendLine($"{Indent(indentation)}{parsedKey}: {parsedValue},");
-                        else
-                            stringBuilder.Append($"{parsedKey}:{parsedValue},");
-                    else
-                        if (options.PrettyPrintEnabled)
-                            stringBuilder.AppendLine($"{Indent(indentation)}{parsedKey}: {parsedValue}");
-                        else
-                            stringBuilder.Append($"{parsedKey}:{parsedValue}");
-                }
-
-                // End with a close curly brace
-                if (options.PrettyPrintEnabled)
-                    stringBuilder.AppendLine(Indent(originalIndentation) + "}");
-                else
-                    stringBuilder.Append("}");
-
-                // Return the result string
-                return stringBuilder.ToString();
-            }
-            catch (Exception e)
-            {
-                throw new Exception("Failed to convert JSONObject to a valid JSON string.", e);
-            }
-        }
-
-        private string Indent(int indentation)
-        {
-            string indent = "";
-            for (var i = 0; i < indentation; i++)
-                indent += " ";
-            return indent;
+            if (Properties.Count == 0)
+                return Object.ToString();
+            
+            return JSONParser.JsonEncode(Properties);
         }
     }
 }

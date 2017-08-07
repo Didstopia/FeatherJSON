@@ -35,24 +35,28 @@ namespace Core.Abstractions
         public DateTimeOffset? DateTimeOffsetProperty { get; set; }
         public byte[] ByteArrayProperty { get; set; }
         public bool BoolProperty { get; set; }
+        public DummyChildModel ChildProperty { get; set; }
 
         // NOTE: These are all included in the serialization by default
         public string StringField;
         public DateTimeOffset? DateTimeOffsetField;
         public byte[] ByteArrayField;
         [SerializerIgnore] public bool BoolField;
+        [SerializerIgnore] DummyChildModel ChildField;
 
         // NOTE: These are all NOT included in the serialization by default
         string PrivateStringProperty { get; set; }
         DateTimeOffset? PrivateDateTimeOffsetProperty { get; set; }
         byte[] PrivateByteArrayProperty { get; set; }
         bool PrivateBoolProperty { get; set; }
+        DummyChildModel PrivateChildProperty { get; set; }
 
         // NOTE: These are all NOT included in the serialization by default
         string PrivateStringField;
         DateTimeOffset? PrivateDateTimeOffsetField;
         byte[] PrivateByteArrayField;
         bool PrivateBoolField;
+        DummyChildModel PrivateChildField;
 
         public void Dispose()
         {
@@ -60,21 +64,29 @@ namespace Core.Abstractions
             DateTimeOffsetProperty = default(DateTimeOffset);
             ByteArrayProperty = default(byte[]);
             BoolProperty = default(bool);
+            ChildProperty?.Dispose();
+            ChildProperty = null;
 
             StringField = default(string);
             DateTimeOffsetField = default(DateTimeOffset);
             ByteArrayField = default(byte[]);
             BoolField = default(bool);
+            ChildField?.Dispose();
+            ChildField = null;
 
             PrivateStringProperty = default(string);
             PrivateDateTimeOffsetProperty = default(DateTimeOffset);
             PrivateByteArrayProperty = default(byte[]);
             PrivateBoolProperty = true;
+            PrivateChildProperty?.Dispose();
+            PrivateChildProperty = null;
 
             PrivateStringField = default(string);
             PrivateDateTimeOffsetField = default(DateTimeOffset);
             PrivateByteArrayField = default(byte[]);
             PrivateBoolField = default(bool);
+            PrivateChildField?.Dispose();
+            PrivateChildField = null;
         }
 
         public static DummyModel Create()
@@ -85,21 +97,25 @@ namespace Core.Abstractions
                 DateTimeOffsetProperty = DateTimeOffset.UtcNow,
                 ByteArrayProperty = Guid.NewGuid().ToByteArray(),
                 BoolProperty = true,
+                ChildProperty = DummyChildModel.Create(),
 
                 StringField = Guid.NewGuid().ToString(),
                 DateTimeOffsetField = DateTimeOffset.UtcNow,
                 ByteArrayField = Guid.NewGuid().ToByteArray(),
                 BoolField = true,
+                ChildField = DummyChildModel.Create(),
 
                 PrivateStringProperty = Guid.NewGuid().ToString(),
                 PrivateDateTimeOffsetProperty = DateTimeOffset.UtcNow,
                 PrivateByteArrayProperty = Guid.NewGuid().ToByteArray(),
                 PrivateBoolProperty = true,
+                PrivateChildProperty = DummyChildModel.Create(),
 
                 PrivateStringField = Guid.NewGuid().ToString(),
                 PrivateDateTimeOffsetField = DateTimeOffset.UtcNow,
                 PrivateByteArrayField = Guid.NewGuid().ToByteArray(),
-                PrivateBoolField = true
+                PrivateBoolField = true,
+                PrivateChildField = DummyChildModel.Create()
             };
         }
     }

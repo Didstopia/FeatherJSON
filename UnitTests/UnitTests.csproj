@@ -28,5 +28,6 @@
     <Folder Include="Extensions\" />
     <Folder Include="Core\Abstractions\" />
     <Folder Include="Utilities\" />
+    <Folder Include="Core\Parser\" />
   </ItemGroup>
 </Project>

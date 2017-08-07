@@ -1,4 +1,4 @@
-﻿// ConverterTests.cs
+﻿// JSONParserTests.cs
 //
 // Copyright (c) 2017 Didstopia
 //
@@ -27,10 +27,11 @@ using Xunit;
 using Utilities;
 
 using Didstopia.FeatherJSON;
+using Didstopia.FeatherJSON.Parser;
 
 namespace Core
 {
-    public class ConverterTests : Test
+    public class JSONParserTests : Test
     {
         public override void SetUp()
         {
@@ -45,19 +46,17 @@ namespace Core
         }
 
         [Fact]
-        public void Should_Converter_SerializeObject()
+        public void Should_ParseObjectValue()
         {
-            Logger.WriteLine("Should_Converter_SerializeObject()");
+            Logger.WriteLine("Should_ParseObjectValue()");
 
+            // TODO: Test everything, including DummyModel and it's children
+            var serializedModel = Converter.SerializeObject(Model);
+            Console.WriteLine("Serialized model: " + serializedModel);
+            Assert.NotNull(serializedModel);
 
-        }
-
-        [Fact]
-        public void Should_Converter_DeserializeObject()
-        {
-            Logger.WriteLine("Should_Converter_DeserializeObject()");
-
-
+            var deserializerModel = Converter.DeserializeObject<DummyModel>(serializedModel);
+            Assert.NotNull(deserializerModel);
         }
     }
 }

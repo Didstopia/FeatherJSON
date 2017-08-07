@@ -1,5 +1,6 @@
-﻿// JSONTokenizer.cs
+﻿// JSONToken.cs
 //
+// Copyright (c) 2008 Patrick van Bergen (MIT License)
 // Copyright (c) 2017 Didstopia
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,15 +23,21 @@
 
 using System;
 
-// TODO: Implement
-
-namespace Didstopia.FeatherJSON
+namespace Didstopia.FeatherJSON.Parser
 {
-    public class JSONTokenizer
+    public enum JSONToken
     {
-        public JSONTokenizer()
-        {
-            
-        }
+        None,
+        CurlyBraceOpen,
+        CurlyBraceClose,
+        SquareBracketOpen,
+        SquareBracketClose,
+        Colon,
+        Comma,
+        String,
+        Number,
+        True,
+        False,
+        Null
     }
 }
