@@ -40,7 +40,7 @@ before_script:
 script:
   - dotnet restore
   - dotnet build --configuration ${BUILD_CONFIG}
-  - dotnet test --configuration ${BUILD_CONFIG} --no-build Didstopia.FeatherJSON.Tests
+  - dotnet test --configuration ${BUILD_CONFIG} --no-build UnitTests
   - dotnet pack --configuration ${BUILD_CONFIG} --no-build
 
 # Additional jobs that run after tests
