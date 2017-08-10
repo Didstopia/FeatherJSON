@@ -65,7 +65,7 @@ namespace Core
             AssertNotNullOrEmpty(deserializedModel.DateTimeOffsetProperty, "DateTimeOffsetProperty cannot be null");
             AssertNotNullOrEmpty(deserializedModel.ByteArrayProperty, "ByteArrayProperty cannot be null or empty");
             Assert.True(deserializedModel.BoolProperty, "BoolProperty cannot be false");
-            Assert.False(deserializedModel.IgnoredBoolProperty, "IgnoredBoolProperty cannot be true");
+            AssertNotNullOrEmpty(deserializedModel.DictionaryProperty, "DictionaryProperty cannot be null or empty");
             AssertNotNullOrEmpty(deserializedModel.ChildProperty, "ChildProperty cannot be null");
             AssertNotNullOrEmpty(deserializedModel.ChildListProperty, "ChildListProperty cannot be null or empty");
             AssertNotNullOrEmpty(deserializedModel.ChildCollectionProperty, "ChildCollectionProperty cannot be null or empty");
