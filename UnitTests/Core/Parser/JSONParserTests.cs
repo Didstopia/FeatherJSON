@@ -31,6 +31,8 @@ using Didstopia.FeatherJSON.Parser;
 using System.Collections.Generic;
 using System.Collections;
 using System.Diagnostics;
+using System.Text;
+using System.Collections.ObjectModel;
 
 namespace Core
 {
@@ -51,9 +53,51 @@ namespace Core
         [Fact]
         public void Should_ParseObjectValue()
         {
-            // Test serialization
+            // TODO: Test and fix these, as they're more than likely ALL failing!
+            // Test serializing basic types
+            var serializedInteger = Converter.SerializeObject(4);
+            Logger.WriteLine("Serialized integer JSON: " + serializedInteger);
+            AssertNotNullOrEmpty(serializedInteger, "Serialized JSON string cannot be null or empty");
+
+            var serializedBool = Converter.SerializeObject(true);
+            Logger.WriteLine("Serialized bool JSON: " + serializedBool);
+            AssertNotNullOrEmpty(serializedBool, "Serialized JSON string cannot be null or empty");
+
+            // FIXME: This crashes
+            var serializedString = Converter.SerializeObject("String");
+            Logger.WriteLine("Serialized string JSON: " + serializedString);
+            AssertNotNullOrEmpty(serializedString, "Serialized JSON string cannot be null or empty");
+
+            var serializedByteArray = Converter.SerializeObject(Encoding.UTF8.GetBytes("ByteArray"));
+            Logger.WriteLine("Serialized byte array JSON: " + serializedByteArray);
+            AssertNotNullOrEmpty(serializedByteArray, "Serialized JSON string cannot be null or empty");
+
+            var serializedDictionary = Converter.SerializeObject(new Dictionary<string, object> { { "Key", "Value" } });
+            Logger.WriteLine("Serialized dictionary JSON: " + serializedDictionary);
+            AssertNotNullOrEmpty(serializedDictionary, "Serialized JSON string cannot be null or empty");
+
+            Dictionary<string, object> complexDictionary = new Dictionary<string, object>();
+            complexDictionary.Add("IntKey", 4);
+            complexDictionary.Add("BoolKey", true);
+            complexDictionary.Add("StringKey", "StringValue");
+            complexDictionary.Add("ByteArrayKey", Encoding.UTF8.GetBytes("ByteArrayValue"));
+            complexDictionary.Add("DictionaryKey", new Dictionary<string, object> { { "Key", "Value" } });
+            var serializedComplexDictionary = Converter.SerializeObject(complexDictionary);
+            Logger.WriteLine("Serialized complex dictionary JSON: " + serializedComplexDictionary);
+            AssertNotNullOrEmpty(serializedComplexDictionary, "Serialized JSON string cannot be null or empty");
+
+            // TODO: Implement
+            /*var serializedList = Converter.SerializeObject(new List<string> { "List" });
+            Logger.WriteLine("Serialized list JSON: " + serializedList);
+            AssertNotNullOrEmpty(serializedList, "Serialized JSON string cannot be null or empty");
+
+            var serializedCollection = Converter.SerializeObject(new Collection<string> { "Collection" });
+            Logger.WriteLine("Serialized collection JSON: " + serializedCollection);
+            AssertNotNullOrEmpty(serializedCollection, "Serialized JSON string cannot be null or empty");*/
+
+            // Test serializing custom objects
             var serializedModel = Converter.SerializeObject(Model);
-            Logger.WriteLine("Serialized JSON: " + serializedModel);
+            Logger.WriteLine("Serialized model JSON: " + serializedModel);
             AssertNotNullOrEmpty(serializedModel, "Serialized JSON string cannot be null or empty");
 
             // Test deserialization
