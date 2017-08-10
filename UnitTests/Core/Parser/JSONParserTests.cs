@@ -103,6 +103,8 @@ namespace Core
             // Test deserialization
             var deserializedModel = Converter.DeserializeObject<DummyModel>(serializedModel);
             Assert.NotNull(deserializedModel);
+            var deserializedObject = Converter.DeserializeObject<object>(serializedModel);
+            Assert.NotNull(deserializedObject);
 
             // Test deserialized public properties
             AssertNotNullOrEmpty(deserializedModel.StringProperty, "StringProperty cannot be null or empty");
