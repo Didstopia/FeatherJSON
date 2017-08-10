@@ -26,6 +26,11 @@ using System.Text;
 
 namespace Didstopia.FeatherJSON
 {
+    public sealed class JSONSerializerIgnore : Attribute
+    {
+        // TODO: Do we need to implement anything here?
+    }
+
     public sealed class JSONSerializer
     {
         public Type Type { get; }

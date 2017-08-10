@@ -21,7 +21,8 @@
 // THE SOFTWARE.
 
 using System;
-
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Didstopia.FeatherJSON;
 
 namespace Core.Abstractions
@@ -29,29 +30,36 @@ namespace Core.Abstractions
     public class DummyModel : IDisposable
     {
         // TODO: Add dummy properties of all possible types (primitives, lists etc.)
+        // TODO: Make sure and document that only public properties can be serialized (but not fields)
+        // TODO: Add a custom attribute for ignoring serialization values
 
-        // NOTE: These are all included in the serialization by default
+        // NOTE: These are all included in the serialization by default,
+        //       apart from those marked with [JSONSerializerIgnore]
         public string StringProperty { get; set; }
         public DateTimeOffset? DateTimeOffsetProperty { get; set; }
         public byte[] ByteArrayProperty { get; set; }
         public bool BoolProperty { get; set; }
+        [JSONSerializerIgnore] public bool IgnoredBoolProperty { get; set; }
         public DummyChildModel ChildProperty { get; set; }
+        public IList<DummyChildModel> ChildListProperty { get; set; }
+        public ICollection<DummyChildModel> ChildCollectionProperty { get; set; }
+        public Dictionary<string, DummyChildModel> ChildDictionaryProperty { get; set; }
 
-        // NOTE: These are all included in the serialization by default
+        // NOTE: Public fields should not be serialized
         public string StringField;
         public DateTimeOffset? DateTimeOffsetField;
         public byte[] ByteArrayField;
-        [SerializerIgnore] public bool BoolField;
-        [SerializerIgnore] DummyChildModel ChildField;
+        public bool BoolField;
+        DummyChildModel ChildField;
 
-        // NOTE: These are all NOT included in the serialization by default
+        // NOTE: Private properties should not be serialized
         string PrivateStringProperty { get; set; }
         DateTimeOffset? PrivateDateTimeOffsetProperty { get; set; }
         byte[] PrivateByteArrayProperty { get; set; }
         bool PrivateBoolProperty { get; set; }
         DummyChildModel PrivateChildProperty { get; set; }
 
-        // NOTE: These are all NOT included in the serialization by default
+        // NOTE: Private fields should not be serialized
         string PrivateStringField;
         DateTimeOffset? PrivateDateTimeOffsetField;
         byte[] PrivateByteArrayField;
@@ -66,11 +74,18 @@ namespace Core.Abstractions
             BoolProperty = default(bool);
             ChildProperty?.Dispose();
             ChildProperty = null;
+            ChildListProperty?.Clear();
+            ChildListProperty = null;
+            ChildCollectionProperty?.Clear();
+            ChildCollectionProperty = null;
+            ChildDictionaryProperty?.Clear();
+            ChildDictionaryProperty = null;
 
             StringField = default(string);
             DateTimeOffsetField = default(DateTimeOffset);
             ByteArrayField = default(byte[]);
             BoolField = default(bool);
+            IgnoredBoolProperty = default(bool);
             ChildField?.Dispose();
             ChildField = null;
 
@@ -97,7 +112,11 @@ namespace Core.Abstractions
                 DateTimeOffsetProperty = DateTimeOffset.UtcNow,
                 ByteArrayProperty = Guid.NewGuid().ToByteArray(),
                 BoolProperty = true,
+                IgnoredBoolProperty = true,
                 ChildProperty = DummyChildModel.Create(),
+                ChildListProperty = new List<DummyChildModel> { DummyChildModel.Create() },
+                ChildCollectionProperty = new Collection<DummyChildModel> { DummyChildModel.Create() },
+                ChildDictionaryProperty = new Dictionary<string, DummyChildModel> { { "Child", DummyChildModel.Create() } },
 
                 StringField = Guid.NewGuid().ToString(),
                 DateTimeOffsetField = DateTimeOffset.UtcNow,
