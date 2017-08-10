@@ -39,6 +39,7 @@ namespace Core.Abstractions
         public DateTimeOffset? DateTimeOffsetProperty { get; set; }
         public byte[] ByteArrayProperty { get; set; }
         public bool BoolProperty { get; set; }
+        public Dictionary<string, object> DictionaryProperty { get; set; }
         [JSONSerializerIgnore] public bool IgnoredBoolProperty { get; set; }
         public DummyChildModel ChildProperty { get; set; }
         public IList<DummyChildModel> ChildListProperty { get; set; }
@@ -72,6 +73,9 @@ namespace Core.Abstractions
             DateTimeOffsetProperty = default(DateTimeOffset);
             ByteArrayProperty = default(byte[]);
             BoolProperty = default(bool);
+            DictionaryProperty?.Clear();
+            DictionaryProperty = null;
+            IgnoredBoolProperty = default(bool);
             ChildProperty?.Dispose();
             ChildProperty = null;
             ChildListProperty?.Clear();
@@ -85,7 +89,6 @@ namespace Core.Abstractions
             DateTimeOffsetField = default(DateTimeOffset);
             ByteArrayField = default(byte[]);
             BoolField = default(bool);
-            IgnoredBoolProperty = default(bool);
             ChildField?.Dispose();
             ChildField = null;
 
@@ -112,6 +115,7 @@ namespace Core.Abstractions
                 DateTimeOffsetProperty = DateTimeOffset.UtcNow,
                 ByteArrayProperty = Guid.NewGuid().ToByteArray(),
                 BoolProperty = true,
+                DictionaryProperty = new Dictionary<string, object> { { "Key", "Value" } },
                 IgnoredBoolProperty = true,
                 ChildProperty = DummyChildModel.Create(),
                 ChildListProperty = new List<DummyChildModel> { DummyChildModel.Create() },

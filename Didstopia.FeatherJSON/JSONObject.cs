@@ -124,20 +124,27 @@ namespace Didstopia.FeatherJSON
                 {
                     Debug.WriteLine($"GetProperties -> Type is IDictionary: {propertyType}");
                     var dictionary = propertyValue as IDictionary;
-                    Dictionary<string, object> dictionaryResult = new Dictionary<string, object>();
-                    foreach (DictionaryEntry item in dictionary)
+                    if (dictionary as Dictionary<string, object> != null)
                     {
-                        if (item.Value.GetType().IsValueType)
-                        {
-                            dictionaryResult.Add(item.Key.ToString(), item.Value);
-                        }
-                        else
-                        {
-                            var itemProperties = GetProperties(item.Value.GetType(), item.Value);
-                            dictionaryResult.Add(item.Key.ToString(), itemProperties);
-                        }
+                        result.Add(typeProperty.Name, dictionary);
                     }
-                    result.Add(typeProperty.Name, dictionaryResult);
+                    else
+                    {
+                        Dictionary<string, object> dictionaryResult = new Dictionary<string, object>();
+                        foreach (DictionaryEntry item in dictionary)
+                        {
+                            if (item.Value.GetType().IsValueType)
+                            {
+                                dictionaryResult.Add(item.Key.ToString(), item.Value);
+                            }
+                            else
+                            {
+                                var itemProperties = GetProperties(item.Value.GetType(), item.Value);
+                                dictionaryResult.Add(item.Key.ToString(), itemProperties);
+                            }
+                        }
+                        result.Add(typeProperty.Name, dictionaryResult);
+                    }
                 }
 
                 // Handle lists (also handles collections)
