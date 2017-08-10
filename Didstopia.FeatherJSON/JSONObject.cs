@@ -46,9 +46,30 @@ namespace Didstopia.FeatherJSON
             Type = type;
             Object = o ?? throw new Exception("Can't create JSONObject from a null object");
 
-            // If the object is a value type, we can ignore scanning it's properties
-            if (Object.GetType().IsValueType)
+            // TODO: Decide if we support serializing primitives/value types,
+            //       as only custom objects, lists, dictionaries and collections
+            //       make sense to me right now..
+
+            // TODO: Handle unsupported types gracefully, I guess in the parser or serializer?
+
+            // If the object is a primitive, then we can ignore scanning it's properties
+            if (Object.GetType().IsPrimitive ||
+                Object.GetType().IsValueType ||
+                Object.GetType().Equals(typeof(string)) ||
+                Object.GetType().Equals(typeof(Decimal)))
+            {
+                Debug.WriteLine($"JSONObject -> Skipping property check for type {Object.GetType()}");
                 return;
+            }
+
+            // TODO: These really shouldn't be here, as we need to refactor the type detection and handling,
+            //       so it's reusable across the app, in both the parser and here (in fact move parsing to the parser?)
+            if (Object is Dictionary<string, object>)
+            {
+                Debug.WriteLine("JSONObject -> Detected Dictionary<string, object>, skipping property check");
+                Properties = Object as Dictionary<string, object>;
+                return;
+            }
 
             // Create a new dictionary in which we'll store the object properties
             Properties = GetProperties(Type, Object);
@@ -58,6 +79,8 @@ namespace Didstopia.FeatherJSON
         //        handle enumerable collections and recursively handle custom objects/classes
         internal static Dictionary<string, object> GetProperties(Type type, object o)
         {
+            Debug.WriteLine($"Getting properties for type {type}");
+
             Dictionary<string, object> result = new Dictionary<string, object>();
             var typeProperties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var typeProperty in typeProperties)
@@ -179,7 +202,8 @@ namespace Didstopia.FeatherJSON
 
         internal static object SetProperties(Type type, Dictionary<string, object> properties)
         {
-            // TODO: Implement recursively
+            Debug.WriteLine($"Setting properties for type {type}");
+
             var result = Activator.CreateInstance(type);
             var typeProperties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (var typeProperty in typeProperties)
@@ -400,7 +424,7 @@ namespace Didstopia.FeatherJSON
 
         private string ConvertToString(SerializerOptions options = default(SerializerOptions))
         {
-            if (Properties.Count == 0)
+            if (Properties == null || Properties.Count == 0)
                 return Object.ToString();
             
             return JSONParser.JsonEncode(Properties);
