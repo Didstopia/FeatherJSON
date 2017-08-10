@@ -8,15 +8,10 @@ mono: none
 dotnet: 1.0.4
 
 # Operating systems to test against
-os:
-  - linux
-  - osx
+os: linux
 
 # Disable sudo to enable running inside a container
 sudo: false
-
-# Default Xcode/macOS version (macOS 10.12)
-osx_image: xcode8.3
 
 # Global environment variables
 env:
