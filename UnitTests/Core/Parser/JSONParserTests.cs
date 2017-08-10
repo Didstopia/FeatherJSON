@@ -28,6 +28,9 @@ using Utilities;
 
 using Didstopia.FeatherJSON;
 using Didstopia.FeatherJSON.Parser;
+using System.Collections.Generic;
+using System.Collections;
+using System.Diagnostics;
 
 namespace Core
 {
@@ -48,15 +51,56 @@ namespace Core
         [Fact]
         public void Should_ParseObjectValue()
         {
-            Logger.WriteLine("Should_ParseObjectValue()");
-
-            // TODO: Test everything, including DummyModel and it's children
+            // Test serialization
             var serializedModel = Converter.SerializeObject(Model);
-            Console.WriteLine("Serialized model: " + serializedModel);
-            Assert.NotNull(serializedModel);
+            Logger.WriteLine("Serialized JSON: " + serializedModel);
+            AssertNotNullOrEmpty(serializedModel, "Serialized JSON string cannot be null or empty");
 
-            var deserializerModel = Converter.DeserializeObject<DummyModel>(serializedModel);
-            Assert.NotNull(deserializerModel);
+            // Test deserialization
+            var deserializedModel = Converter.DeserializeObject<DummyModel>(serializedModel);
+            Assert.NotNull(deserializedModel);
+
+            // Test deserialized public properties
+            AssertNotNullOrEmpty(deserializedModel.StringProperty, "StringProperty cannot be null or empty");
+            AssertNotNullOrEmpty(deserializedModel.DateTimeOffsetProperty, "DateTimeOffsetProperty cannot be null");
+            AssertNotNullOrEmpty(deserializedModel.ByteArrayProperty, "ByteArrayProperty cannot be null or empty");
+            Assert.True(deserializedModel.BoolProperty, "BoolProperty cannot be false");
+            Assert.False(deserializedModel.IgnoredBoolProperty, "IgnoredBoolProperty cannot be true");
+            AssertNotNullOrEmpty(deserializedModel.ChildProperty, "ChildProperty cannot be null");
+            AssertNotNullOrEmpty(deserializedModel.ChildListProperty, "ChildListProperty cannot be null or empty");
+            AssertNotNullOrEmpty(deserializedModel.ChildCollectionProperty, "ChildCollectionProperty cannot be null or empty");
+            AssertNotNullOrEmpty(deserializedModel.ChildDictionaryProperty, "ChildDictionaryProperty cannot be null or empty");
+
+            // TODO: Test deserialized public fields
+
+
+            // TODO: Test deserialized private properties
+
+
+            // TODO: Test deserialized private fields
+
+        }
+
+        private static void AssertNotNullOrEmpty(object o, string message = null)
+        {
+            var result = true;
+
+            if (o == null)
+                result = false;
+
+            else if (o is string)
+                result = ((string)o).Length > 0;
+
+            else if (o is IList)
+                result = ((IList)o).Count > 0;
+
+            else if (o is ICollection)
+                result = ((ICollection)o).Count > 0;
+
+            else if (o is IDictionary)
+                result = ((IDictionary)o).Count > 0;
+
+            Assert.True(result, message);
         }
     }
 }
