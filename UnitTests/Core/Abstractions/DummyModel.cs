@@ -29,6 +29,13 @@ namespace Core.Abstractions
 {
     public class DummyModel : IDisposable
     {
+        public enum DummyEnum
+        {
+            One,
+            Two,
+            Three
+        }
+
         // TODO: Add dummy properties of all possible types (primitives, lists etc.)
         // TODO: Make sure and document that only public properties can be serialized (but not fields)
         // TODO: Add a custom attribute for ignoring serialization values
@@ -39,6 +46,7 @@ namespace Core.Abstractions
         public DateTimeOffset? DateTimeOffsetProperty { get; set; }
         public byte[] ByteArrayProperty { get; set; }
         public bool BoolProperty { get; set; }
+        public DummyEnum EnumProperty { get; set; }
         public Dictionary<string, object> DictionaryProperty { get; set; }
         [JSONSerializerIgnore] public bool IgnoredBoolProperty { get; set; }
         public object NullObjectProperty { get; set; }
@@ -74,6 +82,7 @@ namespace Core.Abstractions
             DateTimeOffsetProperty = default(DateTimeOffset);
             ByteArrayProperty = default(byte[]);
             BoolProperty = default(bool);
+            EnumProperty = default(DummyEnum);
             DictionaryProperty?.Clear();
             DictionaryProperty = null;
             IgnoredBoolProperty = default(bool);
@@ -117,6 +126,7 @@ namespace Core.Abstractions
                 DateTimeOffsetProperty = DateTimeOffset.UtcNow,
                 ByteArrayProperty = Guid.NewGuid().ToByteArray(),
                 BoolProperty = true,
+                EnumProperty = DummyEnum.Three,
                 DictionaryProperty = new Dictionary<string, object> { { "Key", "Value" } },
                 IgnoredBoolProperty = true,
                 NullObjectProperty = null,

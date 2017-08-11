@@ -72,6 +72,11 @@ namespace Core
             var deserializedString = Converter.DeserializeObject<string>(serializedString);
             Assert.True(!string.IsNullOrWhiteSpace(deserializedString as string), "Deserialized string cannot be null or empty");
 
+            var serializedNullObject = Converter.SerializeObject(null);
+            Assert.Null(serializedNullObject);
+            var deserializedNullObject = Converter.DeserializeObject<object>(null);
+            Assert.Null(deserializedNullObject);
+
             // TODO: Fix this at some point, and actually rewrite most of the primitive/basic type handling..
 
             /*var serializedByteArray = Converter.SerializeObject(Encoding.UTF8.GetBytes("ByteArray"));
@@ -87,7 +92,7 @@ namespace Core
             var deserializedDictionary = Converter.DeserializeObject<Dictionary<string, object>>(serializedDictionary);
             Assert.True(deserializedDictionary as Dictionary<string, object> != null, "Deserialized dictionary cannot be null");*/
 
-            foreach (var i in new Dictionary<string, object> { { "Key", "Value" } })
+            foreach (var i in new Dictionary<string, object> { { "EnumKey", DummyModel.DummyEnum.Three }, { "CustomObjectKey", DummyModel.Create() }, { "IntKey", DateTimeOffset.UtcNow.ToUnixTimeSeconds() } })
             {
                 var serializedKey = Converter.SerializeObject(i.Key);
                 var serializedValue = Converter.SerializeObject(i.Value);
@@ -107,6 +112,10 @@ namespace Core
             Dictionary<string, object> complexDictionary = new Dictionary<string, object>();
             complexDictionary.Add("IntKey", 4);
             complexDictionary.Add("BoolKey", true);
+            complexDictionary.Add("EnumKey", DummyModel.DummyEnum.Three);
+            complexDictionary.Add("CustomObjectKey", DummyModel.Create());
+            complexDictionary.Add("LongKey", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            complexDictionary.Add("NullKey", null);
             complexDictionary.Add("StringKey", "StringValue");
             complexDictionary.Add("ByteArrayKey", Encoding.UTF8.GetBytes("ByteArrayValue"));
             complexDictionary.Add("DictionaryKey", new Dictionary<string, object> { { "Key", "Value" } });
@@ -137,6 +146,7 @@ namespace Core
             AssertNotNullOrEmpty(deserializedModel.DateTimeOffsetProperty, "DateTimeOffsetProperty cannot be null");
             AssertNotNullOrEmpty(deserializedModel.ByteArrayProperty, "ByteArrayProperty cannot be null or empty");
             Assert.True(deserializedModel.BoolProperty, "BoolProperty cannot be false");
+            Assert.True(deserializedModel.EnumProperty == DummyModel.DummyEnum.Three, "EnumProperty should be DummyEnum.Three or an integer of 2");
             Assert.False(deserializedModel.IgnoredBoolProperty);
             Assert.Null(deserializedModel.NullObjectProperty);
             AssertNotNullOrEmpty(deserializedModel.DictionaryProperty, "DictionaryProperty cannot be null or empty");
@@ -154,10 +164,11 @@ namespace Core
             // TODO: Test deserialized private fields
 
 
-            // Test pretty printing
+            // TODO: Re-enable
+            /*// Test pretty printing
             var serializedModelPrettyPrinted = Converter.SerializeObject(Model, new SerializerOptions { IgnoreNullOrUndefined = true, PrettyPrintEnabled = true });
             Logger.WriteLine("Serialized model pretty printed JSON: " + Environment.NewLine + serializedModelPrettyPrinted);
-            AssertNotNullOrEmpty(serializedModelPrettyPrinted, "Serialized JSON string cannot be null or empty");
+            AssertNotNullOrEmpty(serializedModelPrettyPrinted, "Serialized JSON string cannot be null or empty");*/
 
             // TODO: Test serializer options
 

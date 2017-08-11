@@ -87,8 +87,43 @@ namespace Didstopia.FeatherJSON
             //       so it's reusable across the app, in both the parser and here (in fact move parsing to the parser?)
             if (Object is Dictionary<string, object>)
             {
+                // FIXME: This does NOT work when at least one of the values is a custom type,
+                //        as this gets sent to our JSON parser for encoding, which naturally doesn't these types
+
                 Debug.WriteLine("JSONObject -> Detected Dictionary<string, object>, skipping property check");
-                Properties = Object as Dictionary<string, object>;
+
+                /*Properties = Object as Dictionary<string, object>;
+                return;*/
+
+                var dictionaryResult = new Dictionary<string, object>();
+                foreach (var item in Object as Dictionary<string, object>)
+                {
+                    if (item.Value == null)
+                    {
+                        if (!options.IgnoreNullOrUndefined)
+                            dictionaryResult.Add(item.Key, item.Value);
+                        
+                        continue;
+                    }
+
+                    var valueType = item.Value.GetType();
+
+                    if (valueType.IsPrimitive ||
+                        valueType.IsValueType ||
+                        valueType.Equals(typeof(string)) ||
+                        valueType.Equals(typeof(Decimal)) ||
+                        valueType.Equals(typeof(byte[])) ||
+                        valueType.Equals(typeof(Dictionary<string, object>)))
+                    {
+                        dictionaryResult.Add(item.Key, item.Value);
+                    }
+                    else
+                    {
+                        var itemProperties = GetProperties(item.Value.GetType(), item.Value, options);
+                        dictionaryResult.Add(item.Key, itemProperties);
+                    }
+                }
+                Properties = dictionaryResult;
                 return;
             }
             if (Object is Dictionary<object, object>)
@@ -110,7 +145,7 @@ namespace Didstopia.FeatherJSON
             Debug.WriteLine($"Getting properties for type {type}");
 
             Dictionary<string, object> result = new Dictionary<string, object>();
-            var typeProperties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var typeProperties = type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance);
             foreach (var typeProperty in typeProperties)
             {
                 var propertyType = typeProperty.PropertyType;
@@ -236,11 +271,25 @@ namespace Didstopia.FeatherJSON
             Debug.WriteLine($"Setting properties for type {type}");
 
             var result = Activator.CreateInstance(type);
-            var typeProperties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var typeProperties = type.GetProperties(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance);
             foreach (var typeProperty in typeProperties)
             {
                 var propertyType = typeProperty.PropertyType;
                 var propertyArguments = typeProperty.PropertyType.GetGenericArguments();
+
+                // Skip any property that we don't need
+                if (!properties.ContainsKey(typeProperty.Name))
+                {
+                    Debug.WriteLine($"SetProperties -> Property {typeProperty.Name} is not used, skipping");
+                    continue;
+                }
+
+                // Skip properties that don't have a setter
+                if (typeProperty.GetSetMethod() == null || !typeProperty.GetSetMethod().IsPublic)
+                {
+                    Debug.WriteLine($"SetProperties -> Property {typeProperty.Name} setter is missing or private, skipping");
+                    continue;
+                }
 
                 // Check for JSONSerializerIgnoreAttribute
                 if (Attribute.IsDefined(typeProperty, typeof(JSONSerializerIgnore)))
@@ -293,6 +342,13 @@ namespace Didstopia.FeatherJSON
                     case Type stringType when stringType == typeof(string):
                         Debug.WriteLine($"SetProperties -> Type is string: {propertyType}");
                         typeProperty.SetValue(result, propertyValue);
+                        break;
+
+                    // TODO: Refactor to it's own IsX() method
+                    // Enum type
+                    case Type enumType when enumType.IsEnum:
+                        Debug.WriteLine($"SetProperties -> Type is enum: {propertyType}");
+                        typeProperty.SetValue(result, Convert.ToInt32(propertyValue));
                         break;
 
                     // TODO: Refactor to it's own IsX() method
@@ -465,6 +521,8 @@ namespace Didstopia.FeatherJSON
 
         private string ConvertToString()
         {
+            Debug.WriteLine($"ConvertToString -> Decoding {Type} to a JSON string");
+
             if (Properties == null || Properties.Count == 0)
                 return Object.ToString();
             
