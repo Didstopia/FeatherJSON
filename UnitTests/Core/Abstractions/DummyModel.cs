@@ -41,6 +41,7 @@ namespace Core.Abstractions
         public bool BoolProperty { get; set; }
         public Dictionary<string, object> DictionaryProperty { get; set; }
         [JSONSerializerIgnore] public bool IgnoredBoolProperty { get; set; }
+        public object NullObjectProperty { get; set; }
         public DummyChildModel ChildProperty { get; set; }
         public IList<DummyChildModel> ChildListProperty { get; set; }
         public ICollection<DummyChildModel> ChildCollectionProperty { get; set; }
@@ -76,6 +77,7 @@ namespace Core.Abstractions
             DictionaryProperty?.Clear();
             DictionaryProperty = null;
             IgnoredBoolProperty = default(bool);
+            NullObjectProperty = default(object);
             ChildProperty?.Dispose();
             ChildProperty = null;
             ChildListProperty?.Clear();
@@ -117,6 +119,7 @@ namespace Core.Abstractions
                 BoolProperty = true,
                 DictionaryProperty = new Dictionary<string, object> { { "Key", "Value" } },
                 IgnoredBoolProperty = true,
+                NullObjectProperty = null,
                 ChildProperty = DummyChildModel.Create(),
                 ChildListProperty = new List<DummyChildModel> { DummyChildModel.Create() },
                 ChildCollectionProperty = new Collection<DummyChildModel> { DummyChildModel.Create() },

@@ -24,6 +24,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
@@ -38,23 +39,22 @@ namespace Didstopia.FeatherJSON.Parser
 
     public static class JSONParser
     {
-        // TODO: Add encode/decode support for T and for reflection-based
-        //       property getting and setting, but only if necessary (ie. not a primitive)
+        public static int DefaultIndentation = 2;
 
-        internal static T JsonDecode<T>(string jsonString)
+        internal static T JsonDecode<T>(string jsonString, SerializerOptions options)
         {
-            var result = JsonDecode(jsonString);
+            var result = JsonDecode(jsonString, options);
 
             if (!result.GetType().Equals(typeof(T)))
                 return default(T);
 
-            return (T)JsonDecode(jsonString);
+            return (T)JsonDecode(jsonString, options);
         }
 
-        internal static object JsonDecode(string json)
+        internal static object JsonDecode(string json, SerializerOptions options)
         {
             var success = true;
-            var result = JsonDecode(json, ref success);
+            var result = JsonDecode(json, ref success, options);
 
             if (!success)
                 return null;
@@ -62,7 +62,7 @@ namespace Didstopia.FeatherJSON.Parser
             return result;
         }
 
-        internal static object JsonDecode(string json, ref bool success)
+        internal static object JsonDecode(string json, ref bool success, SerializerOptions options)
         {
             success = true;
 
@@ -81,28 +81,28 @@ namespace Didstopia.FeatherJSON.Parser
             return null;
         }
 
-        internal static string JsonEncode(object json)
+        internal static string JsonEncode(object json, SerializerOptions options)
         {
-            StringBuilder stringBuiler = new StringBuilder();
-            bool success = SerializeValue(json, stringBuiler);
-            return success ? stringBuiler.ToString() : null;
+            StringBuilder stringBuilder = new StringBuilder();
+            bool success = SerializeValue(json, stringBuilder, options);
+            return success ? stringBuilder.ToString() : null;
         }
 
-        internal static bool SerializeValue(object value, StringBuilder stringBuilder)
+        internal static bool SerializeValue(object value, StringBuilder stringBuilder, SerializerOptions options, int indentation = 0)
         {
             bool success = true;
 
             if (value is string)
             {
-                success = SerializeString((string)value, stringBuilder);
+                success = SerializeString((string)value, stringBuilder, options);
             }
             else if (value is Dictionary<string, object>)
             {
-                success = SerializeObject((Dictionary<string, object>)value, stringBuilder);
+                success = SerializeObject((Dictionary<string, object>)value, stringBuilder, options, indentation);
             }
             else if (value is List<object>)
             {
-                success = SerializeArray((List<object>)value, stringBuilder);
+                success = SerializeArray((List<object>)value, stringBuilder, options, indentation);
             }
             else if ((value is Boolean) && ((Boolean)value == true))
             {
@@ -114,19 +114,19 @@ namespace Didstopia.FeatherJSON.Parser
             }
             else if (value is DateTime)
             {
-                success = SerializeDateTime((DateTime)value, stringBuilder);
+                success = SerializeDateTime((DateTime)value, stringBuilder, options);
             }
             else if (value is DateTimeOffset)
             {
-                success = SerializeDateTimeOffset((DateTimeOffset)value, stringBuilder);
+                success = SerializeDateTimeOffset((DateTimeOffset)value, stringBuilder, options);
             }
             else if (value is byte[])
             {
-                success = SerializeByteArray((byte[])value, stringBuilder);
+                success = SerializeByteArray((byte[])value, stringBuilder, options);
             }
             else if (value is ValueType)
             {
-                success = SerializeNumber(Convert.ToDouble(value), stringBuilder);
+                success = SerializeNumber(Convert.ToDouble(value), stringBuilder, options);
             }
             else if (value == null)
             {
@@ -134,17 +134,33 @@ namespace Didstopia.FeatherJSON.Parser
             }
             else
             {
+                Debug.WriteLine("ParseValue() failed for value: " + value);
                 success = false;
             }
-
-            // FIXME: This doesn't support custom child objects
 
             return success;
         }
 
-        internal static bool SerializeObject(Dictionary<string, object> table, StringBuilder stringBuilder)
+        internal static bool SerializeObject(Dictionary<string, object> table, StringBuilder stringBuilder, SerializerOptions options, int indentation = 0)
         {
-            stringBuilder.Append("{");
+            var baseIndentation = indentation;
+            var currentIndentation = indentation;
+
+            var openString = IndentString("{", baseIndentation);
+            if (options.PrettyPrintEnabled)
+            {
+                var lastIndexOfArrayOpen = stringBuilder.ToString().LastIndexOf('[');
+                var currentIndex = stringBuilder.Length - DefaultIndentation;
+
+                if (stringBuilder.Length > 1 && lastIndexOfArrayOpen != currentIndex)
+                    openString = Environment.NewLine + openString;
+                
+                openString = openString + Environment.NewLine;
+            }
+            stringBuilder.Append(openString);
+
+            if (options.PrettyPrintEnabled)
+                currentIndentation += DefaultIndentation;
 
             IDictionaryEnumerator e = table.GetEnumerator();
 
@@ -155,14 +171,19 @@ namespace Didstopia.FeatherJSON.Parser
                 string key = e.Key.ToString();
                 object value = e.Value;
 
-                if (!first)
+                if (first && options.PrettyPrintEnabled)
                 {
-                    stringBuilder.Append(", ");
+                    currentIndentation += DefaultIndentation;
                 }
 
-                SerializeString(key, stringBuilder);
-                stringBuilder.Append(":");
-                if (!SerializeValue(value, stringBuilder))
+                if (!first)
+                {
+                    stringBuilder.Append(options.PrettyPrintEnabled ? ", " + Environment.NewLine : ",");
+                }
+
+                SerializeString(key, stringBuilder, options, currentIndentation);
+                stringBuilder.Append(options.PrettyPrintEnabled ? ": " : ":");
+                if (!SerializeValue(value, stringBuilder, options, currentIndentation))
                 {
                     return false;
                 }
@@ -170,26 +191,50 @@ namespace Didstopia.FeatherJSON.Parser
                 first = false;
             }
 
-            stringBuilder.Append("}");
+            var closeString = IndentString("}", baseIndentation);
+            if (options.PrettyPrintEnabled)
+            {
+                closeString = Environment.NewLine + closeString;
+            }
+            stringBuilder.Append(closeString);
 
             return true;
         }
 
-        internal static bool SerializeArray(List<object> array, StringBuilder stringBuilder)
+        internal static bool SerializeArray(List<object> array, StringBuilder stringBuilder, SerializerOptions options, int indentation = 0)
         {
-            stringBuilder.Append("[");
+            var baseIndentation = indentation;
+            var currentIndentation = indentation;
+
+            var openString = IndentString("[", baseIndentation);
+            if (options.PrettyPrintEnabled)
+            {
+                if (stringBuilder.Length > 1)
+                    openString = Environment.NewLine + openString;
+
+                openString = openString + Environment.NewLine;
+            }
+            stringBuilder.Append(openString);
+
+            if (options.PrettyPrintEnabled)
+                currentIndentation += DefaultIndentation;
 
             bool first = true;
             for (int i = 0; i < array.Count; i++)
             {
                 object value = array[i];
 
-                if (!first)
+                if (first && options.PrettyPrintEnabled)
                 {
-                    stringBuilder.Append(", ");
+                    currentIndentation += DefaultIndentation;
                 }
 
-                if (!SerializeValue(value, stringBuilder))
+                if (!first)
+                {
+                    stringBuilder.Append(options.PrettyPrintEnabled ? ", " + Environment.NewLine : ",");
+                }
+
+                if (!SerializeValue(value, stringBuilder, options, currentIndentation))
                 {
                     return false;
                 }
@@ -197,14 +242,19 @@ namespace Didstopia.FeatherJSON.Parser
                 first = false;
             }
 
-            stringBuilder.Append("]");
+            var closeString = IndentString("]", baseIndentation);
+            if (options.PrettyPrintEnabled)
+            {
+                closeString = Environment.NewLine + closeString;
+            }
+            stringBuilder.Append(closeString);
 
             return true;
         }
 
-        internal static bool SerializeString(string value, StringBuilder stringBuilder)
+        internal static bool SerializeString(string value, StringBuilder stringBuilder, SerializerOptions options, int indentation = 0)
         {
-            stringBuilder.Append("\"");
+            stringBuilder.Append(options.PrettyPrintEnabled ? IndentString(@"""", indentation) : @"""");
 
             char[] charArray = value.ToCharArray();
             for (int i = 0; i < charArray.Length; i++)
@@ -252,94 +302,46 @@ namespace Didstopia.FeatherJSON.Parser
                 }
             }
 
-            stringBuilder.Append("\"");
+            stringBuilder.Append(@"""");
             return true;
         }
 
-        internal static bool SerializeNumber(double number, StringBuilder stringBuilder)
+        internal static bool SerializeNumber(double number, StringBuilder stringBuilder, SerializerOptions options, int indentation = 0)
         {
             stringBuilder.Append(Convert.ToString(number, CultureInfo.InvariantCulture));
             return true;
         }
 
-        internal static bool SerializeByteArray(byte[] byteArray, StringBuilder stringBuilder)
+        internal static bool SerializeByteArray(byte[] byteArray, StringBuilder stringBuilder, SerializerOptions options, int indentation = 0)
         {
-            // FIXME: Our JSON parser doesn't like Convert.ToBase64String, but our JSONObject deserializer requires it..
-
             stringBuilder.Append(@"""" + Convert.ToBase64String(byteArray) + @"""");
-            //stringBuilder.Append(@"""" + JSONSerializer.DefaultEncoding.GetString(byteArray) + @"""");
             return true;
         }
 
-        internal static bool SerializeDateTime(DateTime dateTime, StringBuilder stringBuilder)
+        internal static bool SerializeDateTime(DateTime dateTime, StringBuilder stringBuilder, SerializerOptions options, int indentation = 0)
         {
             stringBuilder.Append(@"""" + dateTime.ToString("o") + @"""");
             return true;
         }
 
-        internal static bool SerializeDateTimeOffset(DateTimeOffset dateTimeOffset, StringBuilder stringBuilder)
+        internal static bool SerializeDateTimeOffset(DateTimeOffset dateTimeOffset, StringBuilder stringBuilder, SerializerOptions options, int indentation = 0)
         {
             stringBuilder.Append(@"""" + dateTimeOffset.ToString("o") + @"""");
             return true;
         }
 
-
-        /*public static object ParseObjectValue(object value)
+        internal static string IndentString(string str, int indentation)
         {
-            // TODO: Add nested property support
+            if (indentation < 0)
+                indentation = 0;
 
-            try
-            {
-                // Handle null objects
-                if (value == null)
-                    return null;
+            if (str == null || indentation == 0)
+                return str;
 
-                // Handle strings
-                if (Type.GetTypeCode(value.GetType()).Equals(TypeCode.String))
-                    return value as string ?? string.Empty;
+            for (var i = 0; i < indentation; i++)
+                str = " " + str;
 
-                // Handle decimals
-                if (Type.GetTypeCode(value.GetType()).Equals(TypeCode.Decimal))
-                    return value;
-
-                // If bool, return lowercase value (true instead of True)
-                if (Type.GetTypeCode(value.GetType()).Equals(TypeCode.Boolean))
-                    return value.ToString().ToLower();
-
-                // If byte array (System.Byte[]), return base64 encoded string
-                if (value.GetType().FullName.StartsWith("System.Byte[]", StringComparison.Ordinal))
-                    return Convert.ToBase64String(value as byte[]);
-
-                // If date time offset, return a standardized time string
-                if (value.GetType().FullName.StartsWith("System.DateTimeOffset", StringComparison.Ordinal))
-                    return ((DateTimeOffset)value).ToString("o");
-
-                // If date, return a standardized time string
-                if (Type.GetTypeCode(value.GetType()).Equals(TypeCode.DateTime))
-                    return ((DateTime)value).ToString("o");
-
-                // If char, return it as a string
-                if (Type.GetTypeCode(value.GetType()).Equals(TypeCode.Char))
-                    return value.ToString();
-
-                // TODO: How do we support array types? Arrays can hold any supported JSON data type
-
-                // TODO: If Dictionary or List, handle accordingly (not sure how though, it'll be tricky)
-
-                // TODO: Handle other supported types that we're probably missing
-
-                // Handle primitives
-                if (value.GetType().IsPrimitive)
-                    return value;
-
-                // TODO: Should we just return null for 
-
-                return value.ToString();
-            }
-            catch (Exception e)
-            {
-                throw new Exception($"Failed to parse object of type {value.GetType()}.", e);
-            }
-        }*/
+            return str;
+        }
     }
 }

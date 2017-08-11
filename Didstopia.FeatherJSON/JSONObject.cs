@@ -40,11 +40,16 @@ namespace Didstopia.FeatherJSON
         public object Object { get; }
         public Dictionary<string, object> Properties { get; }
 
-        public JSONObject(Type type, object o)
+        public SerializerOptions Options { get; }
+
+        public JSONObject(Type type, object o, SerializerOptions options)
         {
+            Debug.WriteLine($"JSONObject -> Creating from object type {o.GetType()} with target type {type}");
+
             // Store the object and it's type
             Type = type;
             Object = o ?? throw new Exception("Can't create JSONObject from a null object");
+            Options = options;
 
             // TODO: Decide if we support serializing primitives/value types,
             //       as only custom objects, lists, dictionaries and collections
@@ -52,11 +57,27 @@ namespace Didstopia.FeatherJSON
 
             // TODO: Handle unsupported types gracefully, I guess in the parser or serializer?
 
+            // Attempt to convert directly to the type
+            if (!o.GetType().Equals(type))
+            {
+                try
+                {
+                    Object = Convert.ChangeType(o, type);
+                    Debug.WriteLine($"JSONObject -> Successfully converted object type from {o.GetType()} to {type}");
+                    return;
+                }
+                catch
+                {
+                    Debug.WriteLine($"JSONObject -> Failed to convert object type, proceeding..");
+                }
+            }
+
             // If the object is a primitive, then we can ignore scanning it's properties
             if (Object.GetType().IsPrimitive ||
                 Object.GetType().IsValueType ||
                 Object.GetType().Equals(typeof(string)) ||
-                Object.GetType().Equals(typeof(Decimal)))
+                Object.GetType().Equals(typeof(Decimal)) ||
+                Object.GetType().Equals(typeof(byte[])))
             {
                 Debug.WriteLine($"JSONObject -> Skipping property check for type {Object.GetType()}");
                 return;
@@ -70,14 +91,21 @@ namespace Didstopia.FeatherJSON
                 Properties = Object as Dictionary<string, object>;
                 return;
             }
+            if (Object is Dictionary<object, object>)
+            {
+                Debug.WriteLine("JSONObject -> Detected Dictionary<object, object>, skipping property check");
+                foreach (var i in Object as Dictionary<object, object>)
+                    Properties.Add(i.Key.ToString(), i.Value);
+                return;
+            }
 
             // Create a new dictionary in which we'll store the object properties
-            Properties = GetProperties(Type, Object);
+            Properties = GetProperties(Type, Object, Options);
         }
 
         // FIXME: Rewrite/refactor across multiple methods, so we can more easily detect the type,
         //        handle enumerable collections and recursively handle custom objects/classes
-        internal static Dictionary<string, object> GetProperties(Type type, object o)
+        internal static Dictionary<string, object> GetProperties(Type type, object o, SerializerOptions options)
         {
             Debug.WriteLine($"Getting properties for type {type}");
 
@@ -100,10 +128,13 @@ namespace Didstopia.FeatherJSON
                 Console.Write("\n");
                 Debug.WriteLine($"GetProperties -> Getting type {propertyType} with value: {propertyValue}");
 
-                if (propertyValue == null)
+                if (propertyValue == null || (propertyValue is string && (propertyValue.Equals("null") || propertyValue.Equals("undefined"))))
                 {
                     Debug.WriteLine($"GetProperties -> Type {propertyType} value was null, skipping");
-                    result.Add(typeProperty.Name, null);
+
+                    if (!options.IgnoreNullOrUndefined)
+                        result.Add(typeProperty.Name, null);
+                    
                     continue;
                 }
 
@@ -162,7 +193,7 @@ namespace Didstopia.FeatherJSON
                             }
                             else
                             {
-                                var itemProperties = GetProperties(item.Value.GetType(), item.Value);
+                                var itemProperties = GetProperties(item.Value.GetType(), item.Value, options);
                                 dictionaryResult.Add(item.Key.ToString(), itemProperties);
                             }
                         }
@@ -184,7 +215,7 @@ namespace Didstopia.FeatherJSON
                         }
                         else
                         {
-                            var elementProperties = GetProperties(element.GetType(), element);
+                            var elementProperties = GetProperties(element.GetType(), element, options);
                             listResult.Add(elementProperties);
                         }
                     }
@@ -194,13 +225,13 @@ namespace Didstopia.FeatherJSON
                 else
                 {
                     Debug.WriteLine($"GetProperties -> Unhandled type: {type}");
-                    result.Add(typeProperty.Name, GetProperties(propertyValue.GetType(), propertyValue));
+                    result.Add(typeProperty.Name, GetProperties(propertyValue.GetType(), propertyValue, options));
                 }
             }
             return result;
         }
 
-        internal static object SetProperties(Type type, Dictionary<string, object> properties)
+        internal static object SetProperties(Type type, Dictionary<string, object> properties, SerializerOptions options)
         {
             Debug.WriteLine($"Setting properties for type {type}");
 
@@ -218,16 +249,18 @@ namespace Didstopia.FeatherJSON
                     continue;
                 }
 
-                var propertyValue = properties[typeProperty.Name];
+                var propertyValue = properties.ContainsKey(typeProperty.Name) ? properties[typeProperty.Name] : null;
 
                 Debug.WriteLine("\n");
                 Debug.WriteLine($"SetProperties -> Setting type {propertyType} with value: {propertyValue}");
 
-                if (propertyValue == null)
+                if (propertyValue == null || (propertyValue is string && (propertyValue.Equals("null") || propertyValue.Equals("undefined"))))
                 {
-                    // TODO: Skip null values if the serializer option is set
                     Debug.WriteLine($"SetProperties -> Type {propertyType} value was null, skipping");
-                    typeProperty.SetValue(result, null);
+
+                    if (!options.IgnoreNullOrUndefined)
+                        typeProperty.SetValue(result, null);
+
                     continue;
                 }
 
@@ -280,7 +313,7 @@ namespace Didstopia.FeatherJSON
                     // Custom object type
                     case Type objectType when (objectType.IsClass && !objectType.Namespace.StartsWith("System.", StringComparison.InvariantCulture) && propertyValue is Dictionary<string, object>):
                         Debug.WriteLine($"SetProperties -> Type is custom object: {propertyType}");
-                        typeProperty.SetValue(result, SetProperties(propertyType, (Dictionary<string, object>)propertyValue));
+                        typeProperty.SetValue(result, SetProperties(propertyType, (Dictionary<string, object>)propertyValue, options));
                         break;
 
                     // Dictionary type
@@ -303,7 +336,7 @@ namespace Didstopia.FeatherJSON
                             if (i.Value is Dictionary<string, object>)
                             {
                                 // Create a new instance of the target value from the provided properties
-                                var targetValue = SetProperties(targetDictionaryValueType, i.Value as Dictionary<string, object>);
+                                var targetValue = SetProperties(targetDictionaryValueType, i.Value as Dictionary<string, object>, options);
 
                                 // Add the instance to the targetDictionary
                                 targetDictionary.Add(i.Key, targetValue);
@@ -340,7 +373,7 @@ namespace Didstopia.FeatherJSON
                             if (item is Dictionary<string, object>)
                             {
                                 // Create a new instance of the target item from the provided properties
-                                var targetItem = SetProperties(targetListValueType, item as Dictionary<string, object>);
+                                var targetItem = SetProperties(targetListValueType, item as Dictionary<string, object>, options);
 
                                 // Add the instance to the targetList
                                 targetList.Add(targetItem);
@@ -374,7 +407,7 @@ namespace Didstopia.FeatherJSON
                             if (item is Dictionary<string, object>)
                             {
                                 // Create a new instance of the target item from the provided properties
-                                var targetItem = SetProperties(targetCollectionValueType, item as Dictionary<string, object>);
+                                var targetItem = SetProperties(targetCollectionValueType, item as Dictionary<string, object>, options);
 
                                 // Add the instance to the targetCollection
                                 targetCollection.Add(targetItem);
@@ -399,22 +432,30 @@ namespace Didstopia.FeatherJSON
             return result;
         }
 
-        public static JSONObject FromString(Type type, string value)
+        public static JSONObject FromString(Type type, string value, SerializerOptions options)
         {
             // Decode the JSON string to an object
-            var decodedObject = JSONParser.JsonDecode(value);
+            var decodedObject = JSONParser.JsonDecode(value, options);
 
             if (decodedObject == null)
-                return new JSONObject(type, null);
+            {
+                Debug.WriteLine($"FromString -> Failed to decode JSON string to {type}, treating {type} as a basic type");
+                return new JSONObject(type, value, options);
+            }
+
+            Debug.WriteLine($"FromString -> Successfully decoded JSON string to {type}");
 
             // Create an object of the necessary type and assign the values to it
             if (decodedObject as Dictionary<string, object> != null)
             {
-                var decodedProperties = (Dictionary<string, object>)decodedObject;
-                return new JSONObject(type, SetProperties(type, decodedProperties));
+                if (!type.Equals(typeof(Dictionary<string, object>)))
+                {
+                    Debug.WriteLine($"FromString -> {type} is a Dictionary<string, object>");
+                    return new JSONObject(type, SetProperties(type, (Dictionary<string, object>)decodedObject, options), options);
+                }
             }
 
-            return new JSONObject(type, decodedObject);
+            return new JSONObject(type, decodedObject, options);
         }
 
         public override string ToString()
@@ -422,12 +463,12 @@ namespace Didstopia.FeatherJSON
             return ConvertToString();
         }
 
-        private string ConvertToString(SerializerOptions options = default(SerializerOptions))
+        private string ConvertToString()
         {
             if (Properties == null || Properties.Count == 0)
                 return Object.ToString();
             
-            return JSONParser.JsonEncode(Properties);
+            return JSONParser.JsonEncode(Properties, Options);
         }
 
         /*public static object Cast(Type Type, object data)
@@ -471,6 +512,11 @@ namespace Didstopia.FeatherJSON
             return o is ICollection ||
                    (o.GetType().IsGenericType &&
                    o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(Collection<>)));*/
+        }
+
+        private static bool IsDoubleInteger(double d)
+        {
+            return Math.Abs(d % 1) <= (Double.Epsilon * 100);
         }
     }
 }
