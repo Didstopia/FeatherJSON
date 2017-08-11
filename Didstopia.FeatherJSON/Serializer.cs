@@ -37,10 +37,21 @@ namespace Didstopia.FeatherJSON
     #endregion
 
     #region Configuration
-    public struct SerializerOptions
+    public class SerializerOptions
     {
         public bool IgnoreNullOrUndefined { get; set; }
         public bool PrettyPrintEnabled { get; set; }
+
+        private static SerializerOptions _defaultOptions;
+        public static SerializerOptions DefaultOptions
+        {
+            get
+            {
+                if (_defaultOptions == null)
+                    _defaultOptions = new SerializerOptions();
+                return _defaultOptions;
+            }
+        }
     }
     #endregion
 
@@ -54,7 +65,7 @@ namespace Didstopia.FeatherJSON
         #region Constructors
         public Serializer(SerializerOptions options = default(SerializerOptions))
         {
-            Options = options;
+            Options = options ?? SerializerOptions.DefaultOptions;
         }
         #endregion
 
@@ -68,9 +79,13 @@ namespace Didstopia.FeatherJSON
         #region Serialization
         public string Serialize(object value)
         {
+            // Protect against null values
+            if (value == null)
+                return default(string);
+
             // Create a new memory stream
-            string jsonString = "{}";
-            JSONSerializer serializer = new JSONSerializer(value.GetType());
+            string jsonString = Options.PrettyPrintEnabled ? "{" + Environment.NewLine + "}" : "{}";
+            JSONSerializer serializer = new JSONSerializer(value.GetType(), Options);
             using (var memoryStream = new MemoryStream())
             {
                 // Write the serialized data to the memory stream
@@ -94,8 +109,10 @@ namespace Didstopia.FeatherJSON
         // TODO: Does this actually work? Or is this wrong?
         public void Serialize(StreamWriter streamWriter, object value)
         {
+            // TODO: Add null protection
+
             // Create a new memory stream
-            JSONSerializer serializer = new JSONSerializer(value.GetType());
+            JSONSerializer serializer = new JSONSerializer(value.GetType(), Options);
             using (var memoryStream = new MemoryStream())
             {
                 // Write the serialized data to the memory stream
@@ -107,9 +124,13 @@ namespace Didstopia.FeatherJSON
         #region Deserialization
         public T Deserialize<T>(string jsonString)
         {
+            // Protect against null values
+            if (string.IsNullOrWhiteSpace(jsonString))
+                return default(T);
+
             // Read the JSON string to a new memory stream
             T deserializedObject = default(T);
-            JSONSerializer deserializer = new JSONSerializer(typeof(T));
+            JSONSerializer deserializer = new JSONSerializer(typeof(T), Options);
             using (var memoryStream = new MemoryStream(JSONSerializer.DefaultEncoding.GetBytes(jsonString)))
             {
                 // Deserialize the contents of the memory stream to an object
@@ -122,11 +143,13 @@ namespace Didstopia.FeatherJSON
 
         public T Deserialize<T>(StreamReader streamReader)
         {
+            // TODO: Add null protection
+
             // TODO: This might be entirely wrong..
             // Read the JSON string to a new memory stream
             var jsonString = streamReader.ReadToEnd();
             T deserializedObject = default(T);
-            JSONSerializer deserializer = new JSONSerializer(typeof(T));
+            JSONSerializer deserializer = new JSONSerializer(typeof(T), Options);
             using (var memoryStream = new MemoryStream(JSONSerializer.DefaultEncoding.GetBytes(jsonString)))
             {
                 // Deserialize the contents of the memory stream to an object

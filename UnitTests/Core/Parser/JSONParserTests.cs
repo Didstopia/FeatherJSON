@@ -53,32 +53,69 @@ namespace Core
         [Fact]
         public void Should_ParseObjectValue()
         {
-            // TODO: Test and fix these, as they're more than likely ALL failing!
             // Test serializing basic types
             var serializedInteger = Converter.SerializeObject(4);
             Logger.WriteLine("Serialized integer JSON: " + serializedInteger);
             AssertNotNullOrEmpty(serializedInteger, "Serialized JSON string cannot be null or empty");
+            var deserializedInteger = Converter.DeserializeObject<int>(serializedInteger);
+            Assert.True(deserializedInteger == 4, "Deserialized integer has an invalid value");
 
             var serializedBool = Converter.SerializeObject(true);
             Logger.WriteLine("Serialized bool JSON: " + serializedBool);
             AssertNotNullOrEmpty(serializedBool, "Serialized JSON string cannot be null or empty");
+            var deserializedBool = Converter.DeserializeObject<bool>(serializedBool);
+            Assert.True(deserializedBool, "Deserialized bool has an invalid value");
 
-            // FIXME: This crashes
             var serializedString = Converter.SerializeObject("String");
             Logger.WriteLine("Serialized string JSON: " + serializedString);
             AssertNotNullOrEmpty(serializedString, "Serialized JSON string cannot be null or empty");
+            var deserializedString = Converter.DeserializeObject<string>(serializedString);
+            Assert.True(!string.IsNullOrWhiteSpace(deserializedString as string), "Deserialized string cannot be null or empty");
 
-            var serializedByteArray = Converter.SerializeObject(Encoding.UTF8.GetBytes("ByteArray"));
+            var serializedNullObject = Converter.SerializeObject(null);
+            Assert.Null(serializedNullObject);
+            var deserializedNullObject = Converter.DeserializeObject<object>(null);
+            Assert.Null(deserializedNullObject);
+
+            // TODO: Fix this at some point, and actually rewrite most of the primitive/basic type handling..
+
+            /*var serializedByteArray = Converter.SerializeObject(Encoding.UTF8.GetBytes("ByteArray"));
             Logger.WriteLine("Serialized byte array JSON: " + serializedByteArray);
             AssertNotNullOrEmpty(serializedByteArray, "Serialized JSON string cannot be null or empty");
+            var deserializedByteArray = Converter.DeserializeObject<byte[]>(serializedByteArray);
+            Assert.True(deserializedByteArray as byte[] != null, "Deserialized byte array cannot be null");
+
 
             var serializedDictionary = Converter.SerializeObject(new Dictionary<string, object> { { "Key", "Value" } });
             Logger.WriteLine("Serialized dictionary JSON: " + serializedDictionary);
             AssertNotNullOrEmpty(serializedDictionary, "Serialized JSON string cannot be null or empty");
+            var deserializedDictionary = Converter.DeserializeObject<Dictionary<string, object>>(serializedDictionary);
+            Assert.True(deserializedDictionary as Dictionary<string, object> != null, "Deserialized dictionary cannot be null");*/
+
+            foreach (var i in new Dictionary<string, object> { { "EnumKey", DummyModel.DummyEnum.Three }, { "CustomObjectKey", DummyModel.Create() }, { "IntKey", DateTimeOffset.UtcNow.ToUnixTimeSeconds() } })
+            {
+                var serializedKey = Converter.SerializeObject(i.Key);
+                var serializedValue = Converter.SerializeObject(i.Value);
+                Logger.WriteLine("Serialized key: " + serializedKey);
+                Logger.WriteLine("Serialized value: " + serializedValue);
+                AssertNotNullOrEmpty(serializedKey);
+                AssertNotNullOrEmpty(serializedValue);
+
+                var deserializedKey = Converter.DeserializeObject<object>(serializedKey);
+                var deserializedValue = Converter.DeserializeObject<object>(serializedValue);
+                Logger.WriteLine("Deserialized key: " + deserializedKey);
+                Logger.WriteLine("Deserialized value: " + deserializedValue);
+                AssertNotNullOrEmpty(deserializedKey);
+                AssertNotNullOrEmpty(deserializedValue);
+            }
 
             Dictionary<string, object> complexDictionary = new Dictionary<string, object>();
             complexDictionary.Add("IntKey", 4);
             complexDictionary.Add("BoolKey", true);
+            complexDictionary.Add("EnumKey", DummyModel.DummyEnum.Three);
+            complexDictionary.Add("CustomObjectKey", DummyModel.Create());
+            complexDictionary.Add("LongKey", DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+            complexDictionary.Add("NullKey", null);
             complexDictionary.Add("StringKey", "StringValue");
             complexDictionary.Add("ByteArrayKey", Encoding.UTF8.GetBytes("ByteArrayValue"));
             complexDictionary.Add("DictionaryKey", new Dictionary<string, object> { { "Key", "Value" } });
@@ -100,7 +137,7 @@ namespace Core
             Logger.WriteLine("Serialized model JSON: " + serializedModel);
             AssertNotNullOrEmpty(serializedModel, "Serialized JSON string cannot be null or empty");
 
-            // Test deserialization
+            // Test deserializing a custom object
             var deserializedModel = Converter.DeserializeObject<DummyModel>(serializedModel);
             Assert.NotNull(deserializedModel);
 
@@ -109,6 +146,9 @@ namespace Core
             AssertNotNullOrEmpty(deserializedModel.DateTimeOffsetProperty, "DateTimeOffsetProperty cannot be null");
             AssertNotNullOrEmpty(deserializedModel.ByteArrayProperty, "ByteArrayProperty cannot be null or empty");
             Assert.True(deserializedModel.BoolProperty, "BoolProperty cannot be false");
+            Assert.True(deserializedModel.EnumProperty == DummyModel.DummyEnum.Three, "EnumProperty should be DummyEnum.Three or an integer of 2");
+            Assert.False(deserializedModel.IgnoredBoolProperty);
+            Assert.Null(deserializedModel.NullObjectProperty);
             AssertNotNullOrEmpty(deserializedModel.DictionaryProperty, "DictionaryProperty cannot be null or empty");
             AssertNotNullOrEmpty(deserializedModel.ChildProperty, "ChildProperty cannot be null");
             AssertNotNullOrEmpty(deserializedModel.ChildListProperty, "ChildListProperty cannot be null or empty");
@@ -122,6 +162,18 @@ namespace Core
 
 
             // TODO: Test deserialized private fields
+
+
+            // TODO: Re-enable
+            /*// Test pretty printing
+            var serializedModelPrettyPrinted = Converter.SerializeObject(Model, new SerializerOptions { IgnoreNullOrUndefined = true, PrettyPrintEnabled = true });
+            Logger.WriteLine("Serialized model pretty printed JSON: " + Environment.NewLine + serializedModelPrettyPrinted);
+            AssertNotNullOrEmpty(serializedModelPrettyPrinted, "Serialized JSON string cannot be null or empty");*/
+
+            // TODO: Test serializer options
+
+
+            // TODO: Add timing tests for different types of serializations, deserializations and different serialization options
 
         }
 

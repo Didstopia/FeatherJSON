@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
@@ -43,6 +44,9 @@ namespace Didstopia.FeatherJSON.Parser
 
             if (!success)
                 return null;
+
+            if (result == null)
+                Debug.WriteLine("null result");
 
             return result;
         }
@@ -167,6 +171,7 @@ namespace Didstopia.FeatherJSON.Parser
                     NextToken(jsonCharArray, ref index);
                     return false;
                 case JSONToken.Null:
+                    NextToken(jsonCharArray, ref index);
                     return null;
                 case JSONToken.None:
                     break;
