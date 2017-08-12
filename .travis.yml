@@ -12,6 +12,7 @@ sudo: false
 
 # Additional jobs that run after tests
 jobs:
+  fast_finish: true # TODO: What does this do?
   include:
 
     - stage: Build and Test
@@ -60,3 +61,8 @@ jobs:
           repo: Didstopia/FeatherJSON
           branch: master
           tags: true
+
+cache:
+  directories:
+    - $HOME/.nuget/packages
+    - $HOME/.dotnet/NuGetFallbackFolder
