@@ -2,9 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <NETStandardImplicitPackageVersion>2.0.0-preview2-25401-01</NETStandardImplicitPackageVersion>
     <Description>FeatherJSON is a lightweight ("light as a feather") JSON library for C#.</Description>
-    <VersionPrefix>0.0.1</VersionPrefix>
+    <VersionPrefix>0.1.6</VersionPrefix>
     <VersionSuffix></VersionSuffix>
     <Authors>Didstopia</Authors>
     <DevelopmentDependency>true</DevelopmentDependency>
@@ -17,7 +16,7 @@
     <Summary>FeatherJSON is a lightweight ("light as a feather") JSON library for C#.</Summary>
     <PackageTags>.net dotnet standard 2.0 library json csharp c# xamarin watchos ios android uwp windows phone wp</PackageTags>
     <Title>Didstopia.FeatherJSON</Title>
-    <ReleaseVersion>0.1.5</ReleaseVersion>
+    <ReleaseVersion>0.1.6</ReleaseVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">

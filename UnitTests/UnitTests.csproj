@@ -4,9 +4,9 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <RuntimeFrameworkVersion>2.0.0-preview2-25407-01</RuntimeFrameworkVersion>
     <IsPackable>false</IsPackable>
-    <VersionPrefix>0.0.1</VersionPrefix>
+    <VersionPrefix>0.1.6</VersionPrefix>
     <VersionSuffix></VersionSuffix>
-    <ReleaseVersion>0.1.5</ReleaseVersion>
+    <ReleaseVersion>0.1.6</ReleaseVersion>
     <Description>Unit tests for Didstopia.FeatherJSON and Didstopia.FeatherJSON.Extensions.</Description>
   </PropertyGroup>
 
@@ -16,7 +16,7 @@
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.2.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0-preview-20170727-01" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0-preview-20170810-02" />
   </ItemGroup>
 
   <ItemGroup>
