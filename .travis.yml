@@ -10,6 +10,9 @@ dotnet: 2.0.0-preview2-006497
 # Disable sudo to enable running inside a container
 sudo: false
 
+# Skip the installation step
+install: true
+
 # Additional jobs that run after tests
 jobs:
   fast_finish: true # TODO: What does this do?
@@ -61,8 +64,3 @@ jobs:
           repo: Didstopia/FeatherJSON
           branch: master
           tags: true
-
-cache:
-  directories:
-    - $HOME/.nuget/packages
-    - $HOME/.dotnet/NuGetFallbackFolder
