@@ -17,10 +17,10 @@ jobs:
     - stage: Build and Test
       script:
         - dotnet restore
-        - dotnet build -c ${BUILD_CONFIG} --no-build
+        - dotnet build -c ${BUILD_CONFIG}
         - dotnet test -c ${BUILD_CONFIG} --no-build UnitTests
         - dotnet pack -c ${BUILD_CONFIG} --no-build
-    
+
     - stage: Deploy to MyGet
       script: skip
       deploy:
