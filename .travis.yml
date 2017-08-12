@@ -4,61 +4,40 @@ language: csharp
 # Mono is not required for this project
 mono: none
 
-# Install .NET Core (LTS)
-dotnet: 1.0.4
-
-# Operating systems to test against
-os: linux
+# Install .NET Core 2.0
+dotnet: 2.0.0-preview2-006497
 
 # Disable sudo to enable running inside a container
 sudo: false
 
-# Global environment variables
-env:
-- BUILD_CONFIG="Debug" DOTNET_CLI_TELEMETRY_OPTOUT=1
-- BUILD_CONFIG="Release" DOTNET_CLI_TELEMETRY_OPTOUT=1
-
-## NOTE: See the following url for the versions of the .NET Core SDK, runtime etc.
-##       https://github.com/dotnet/core/blob/master/release-notes/download-archives/2.0.0-preview2-download.md
-
-# Install dependencies
-install:
-  - bash <(curl -s https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.sh) --channel "LTS" --version "latest"
-  - bash <(curl -s https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.sh) --channel "2.0" --version "2.0.0-preview2-006497"
-  - bash <(curl -s https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.sh) --channel "2.0" --version "latest"
-
-# Setup for the build script
-before_script:
-  - export PATH=$HOME/.dotnet:$PATH
-
-# Build script
-script:
-  - dotnet restore
-  - dotnet build --configuration ${BUILD_CONFIG}
-  - dotnet test --configuration ${BUILD_CONFIG} --no-build UnitTests
-  - dotnet pack --configuration ${BUILD_CONFIG} --no-build
+# Skip the installation step
+install: true
 
 # Additional jobs that run after tests
 jobs:
+  fast_finish: true # TODO: What does this do?
   include:
 
-    - stage: myget.org
+    - stage: Build and Test
+      script:
+        - dotnet restore
+        - dotnet build -c ${BUILD_CONFIG}
+        - dotnet test -c ${BUILD_CONFIG} --no-build UnitTests
+        - dotnet pack -c ${BUILD_CONFIG} --no-build
+
+    - stage: Deploy to MyGet
       script: skip
-      env: BUILD_CONFIG="Release" DOTNET_CLI_TELEMETRY_OPTOUT=1
-      os: linux
       deploy:
         provider: script
-        script: .scripts/deploy.sh $BUILD_CONFIG $MYGET_API_KEY https://www.myget.org/F/didstopia-prerelease/api/v2
+        script: .scripts/deploy.sh $BUILD_CONFIG $MYGET_API_KEY $MYGET_FEED
         skip_cleanup: true
         on:
           repo: Didstopia/FeatherJSON
           branch: master
           tags: false
     
-    - stage: nuget.org
+    - stage: Deploy to NuGet
       script: skip
-      env: BUILD_CONFIG="Release" DOTNET_CLI_TELEMETRY_OPTOUT=1
-      os: linux
       deploy:
         provider: script
         script: .scripts/deploy.sh $BUILD_CONFIG $NUGET_API_KEY
@@ -68,13 +47,11 @@ jobs:
           branch: master
           tags: true
 
-    - stage: GitHub Release
+    - stage: Deploy to GitHub
       script:
         - dotnet restore
         - dotnet build -c $BUILD_CONFIG
         - dotnet pack -c $BUILD_CONFIG --no-build
-      env: BUILD_CONFIG="Release" DOTNET_CLI_TELEMETRY_OPTOUT=1
-      os: linux
       deploy:
         provider: releases
         api_key: $GITHUB_OAUTH_TOKEN
@@ -87,8 +64,3 @@ jobs:
           repo: Didstopia/FeatherJSON
           branch: master
           tags: true
-
-cache:
-  directories:
-    - $HOME/.nuget/packages
-    - $HOME/.dotnet/NuGetFallbackFolder
