@@ -7,6 +7,9 @@ mono: none
 # Install .NET Core 2.0
 dotnet: 2.0.0-preview2-006497
 
+# Run Ubuntu Trusty
+dist: trusty
+
 # Disable sudo to enable running inside a container
 sudo: false
 
@@ -15,7 +18,7 @@ install: true
 
 # Additional jobs that run after tests
 jobs:
-  fast_finish: true # TODO: What does this do?
+  fast_finish: true
   include:
 
     - stage: Build and Test
