@@ -16,7 +16,7 @@
     <PackageTags>.net dotnet standard 2.0 library json extension compression csharp c# xamarin watchos ios android uwp windows phone wp</PackageTags>
     <Title>Didstopia.FeatherJSON.Extensions</Title>
     <Description>Extensions for Didstopia.FeatherJSON.</Description>
-    <ReleaseVersion>0.1.6</ReleaseVersion>
+    <ReleaseVersion>0.1.7</ReleaseVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
