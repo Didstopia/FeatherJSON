@@ -256,15 +256,13 @@ namespace Didstopia.FeatherJSON.Parser
                         if (remainingLength >= 4)
                         {
                             // parse the 32 bit hex into an integer codepoint
-                            uint codePoint;
-
-                            if (!(success = UInt32.TryParse(new string(jsonCharArray, index, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out codePoint)))
+                            if (!(success = uint.TryParse(new string(jsonCharArray, index, 4), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out uint codePoint)))
                             {
                                 return "";
                             }
 
                             // convert the integer codepoint to a unicode char and add to string
-                            stringBuilder.Append(Char.ConvertFromUtf32((int)codePoint));
+                            stringBuilder.Append(char.ConvertFromUtf32((int)codePoint));
 
                             // skip 4 chars
                             index += 4;
@@ -297,8 +295,7 @@ namespace Didstopia.FeatherJSON.Parser
             var lastIndex = GetLastIndexOfNumber(jsonCharArray, index);
             var charLength = (lastIndex - index) + 1;
 
-            double number;
-            success = Double.TryParse(new string(jsonCharArray, index, charLength), NumberStyles.Any, CultureInfo.InvariantCulture, out number);
+            success = double.TryParse(new string(jsonCharArray, index, charLength), NumberStyles.Any, CultureInfo.InvariantCulture, out double number);
 
             index = lastIndex + 1;
             return number;

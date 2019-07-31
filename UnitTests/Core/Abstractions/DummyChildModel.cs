@@ -27,18 +27,20 @@ namespace Core.Abstractions
     public class DummyChildModel : IDisposable
     {
         public string StringProperty { get; set; }
-        string PrivateStringProperty { get; set; }
-
         public string StringField;
-        string PrivateStringField;
+
+        // FIXME: Somehow test these
+        //private string PrivateStringProperty { get; set; }
+        //private string PrivateStringField;
 
         public void Dispose()
         {
-            StringProperty = default(string);
-            PrivateStringProperty = default(string);
+            StringProperty = default;
+            StringField = default;
 
-            StringField = default(string);
-            PrivateStringField = default(string);
+            // FIXME: Somehow test these
+            //PrivateStringProperty = default;
+            //PrivateStringField = default;
         }
 
         public static DummyChildModel Create()
@@ -48,8 +50,9 @@ namespace Core.Abstractions
                 StringProperty = Guid.NewGuid().ToString(),
                 StringField = Guid.NewGuid().ToString(),
 
-                PrivateStringProperty = Guid.NewGuid().ToString(),
-                PrivateStringField = Guid.NewGuid().ToString(),
+                // FIXME: Somehow test these
+                //PrivateStringProperty = Guid.NewGuid().ToString(),
+                //PrivateStringField = Guid.NewGuid().ToString(),
             };
         }
     }

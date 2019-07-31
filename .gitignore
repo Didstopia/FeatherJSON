@@ -1,3 +1,5 @@
+.vs/
+
 # Code coverage
 *.mlpd
 coverage.*

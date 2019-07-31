@@ -76,7 +76,7 @@ namespace Didstopia.FeatherJSON
             if (Object.GetType().IsPrimitive ||
                 Object.GetType().IsValueType ||
                 Object.GetType().Equals(typeof(string)) ||
-                Object.GetType().Equals(typeof(Decimal)) ||
+                Object.GetType().Equals(typeof(decimal)) ||
                 Object.GetType().Equals(typeof(byte[])))
             {
                 Debug.WriteLine($"JSONObject -> Skipping property check for type {Object.GetType()}");
@@ -91,9 +91,6 @@ namespace Didstopia.FeatherJSON
                 //        as this gets sent to our JSON parser for encoding, which naturally doesn't these types
 
                 Debug.WriteLine("JSONObject -> Detected Dictionary<string, object>, skipping property check");
-
-                /*Properties = Object as Dictionary<string, object>;
-                return;*/
 
                 var dictionaryResult = new Dictionary<string, object>();
                 foreach (var item in Object as Dictionary<string, object>)
@@ -111,7 +108,7 @@ namespace Didstopia.FeatherJSON
                     if (valueType.IsPrimitive ||
                         valueType.IsValueType ||
                         valueType.Equals(typeof(string)) ||
-                        valueType.Equals(typeof(Decimal)) ||
+                        valueType.Equals(typeof(decimal)) ||
                         valueType.Equals(typeof(byte[])) ||
                         valueType.Equals(typeof(Dictionary<string, object>)))
                     {
@@ -131,6 +128,15 @@ namespace Didstopia.FeatherJSON
                 Debug.WriteLine("JSONObject -> Detected Dictionary<object, object>, skipping property check");
                 foreach (var i in Object as Dictionary<object, object>)
                     Properties.Add(i.Key.ToString(), i.Value);
+                return;
+            }
+            // TODO: This should handle all primitives, not just strings
+            if (Object is List<string>)
+            {
+                Debug.WriteLine("JSONObject -> Detected List<string>, skipping property check");
+                //var values = new List<object>();
+                //foreach (var i in Object as List<object>)
+                //    Properties.Add(i.Key.ToString(), i.Value);
                 return;
             }
 

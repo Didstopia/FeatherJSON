@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 using System;
+using Xunit;
 
 namespace Core.Abstractions
 {
@@ -28,7 +29,7 @@ namespace Core.Abstractions
     {
         public DummyModel Model { get; set; }
 
-        public Test()
+        protected Test()
         {
             #pragma warning disable RECS0021 // Warns about calls to virtual member functions occuring in the constructor
             SetUp();

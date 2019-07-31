@@ -92,6 +92,9 @@ namespace Didstopia.FeatherJSON.Parser
         {
             bool success = true;
 
+            // FIXME: List serialization doesn't seem to work yet
+            // FIXME: Array serialization doesn't seem to work yet
+
             if (value is string)
             {
                 success = SerializeString((string)value, stringBuilder, options);
@@ -104,11 +107,11 @@ namespace Didstopia.FeatherJSON.Parser
             {
                 success = SerializeArray((List<object>)value, stringBuilder, options, indentation);
             }
-            else if ((value is Boolean) && ((Boolean)value == true))
+            else if ((value is bool) && ((bool)value == true))
             {
                 stringBuilder.Append("true");
             }
-            else if ((value is Boolean) && ((Boolean)value == false))
+            else if ((value is bool) && ((bool)value == false))
             {
                 stringBuilder.Append("false");
             }
@@ -155,7 +158,7 @@ namespace Didstopia.FeatherJSON.Parser
                 if (stringBuilder.Length > 1 && lastIndexOfArrayOpen != currentIndex)
                     openString = Environment.NewLine + openString;
                 
-                openString = openString + Environment.NewLine;
+                openString += Environment.NewLine;
             }
             stringBuilder.Append(openString);
 
@@ -203,6 +206,8 @@ namespace Didstopia.FeatherJSON.Parser
 
         internal static bool SerializeArray(List<object> array, StringBuilder stringBuilder, SerializerOptions options, int indentation = 0)
         {
+            // FIXME: Apparently this doesn't work yet? Fails for both lists and arrays?
+
             var baseIndentation = indentation;
             var currentIndentation = indentation;
 
@@ -212,7 +217,7 @@ namespace Didstopia.FeatherJSON.Parser
                 if (stringBuilder.Length > 1)
                     openString = Environment.NewLine + openString;
 
-                openString = openString + Environment.NewLine;
+                openString += Environment.NewLine;
             }
             stringBuilder.Append(openString);
 
@@ -260,45 +265,41 @@ namespace Didstopia.FeatherJSON.Parser
             for (int i = 0; i < charArray.Length; i++)
             {
                 char c = charArray[i];
-                if (c == '"')
+                switch (c)
                 {
-                    stringBuilder.Append("\\\"");
-                }
-                else if (c == '\\')
-                {
-                    stringBuilder.Append("\\\\");
-                }
-                else if (c == '\b')
-                {
-                    stringBuilder.Append("\\b");
-                }
-                else if (c == '\f')
-                {
-                    stringBuilder.Append("\\f");
-                }
-                else if (c == '\n')
-                {
-                    stringBuilder.Append("\\n");
-                }
-                else if (c == '\r')
-                {
-                    stringBuilder.Append("\\r");
-                }
-                else if (c == '\t')
-                {
-                    stringBuilder.Append("\\t");
-                }
-                else
-                {
-                    int codepoint = Convert.ToInt32(c);
-                    if ((codepoint >= 32) && (codepoint <= 126))
-                    {
-                        stringBuilder.Append(c);
-                    }
-                    else
-                    {
-                        stringBuilder.Append("\\u" + Convert.ToString(codepoint, 16).PadLeft(4, '0'));
-                    }
+                    case '"':
+                        stringBuilder.Append("\\\"");
+                        break;
+                    case '\\':
+                        stringBuilder.Append("\\\\");
+                        break;
+                    case '\b':
+                        stringBuilder.Append("\\b");
+                        break;
+                    case '\f':
+                        stringBuilder.Append("\\f");
+                        break;
+                    case '\n':
+                        stringBuilder.Append("\\n");
+                        break;
+                    case '\r':
+                        stringBuilder.Append("\\r");
+                        break;
+                    case '\t':
+                        stringBuilder.Append("\\t");
+                        break;
+                    default:
+                        int codepoint = Convert.ToInt32(c);
+                        if ((codepoint >= 32) && (codepoint <= 126))
+                        {
+                            stringBuilder.Append(c);
+                        }
+                        else
+                        {
+                            stringBuilder.Append("\\u" + Convert.ToString(codepoint, 16).PadLeft(4, '0'));
+                        }
+
+                        break;
                 }
             }
 
